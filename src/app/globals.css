@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f0f9f2;
+  --color-brand-100: #dcf1e1;
+  --color-brand-200: #b9e2c4;
+  --color-brand-300: #8acb9e;
+  --color-brand-400: #56ad73;
+  --color-brand-500: #2f9254;
+  --color-brand-600: #217a43;
+  --color-brand-700: #1b6137;
+  --color-brand-800: #184d2e;
+  --color-brand-900: #143f27;
+
+  --color-board: #1f4a36;
+  --color-board-dark: #163728;
+  --color-chalk: #f4f1e8;
+  --color-pencil: #f2c230;
+  --color-pencil-soft: #fdf3cf;
+
+  --color-canvas: #f5f7f2;
+  --color-surface: #ffffff;
+  --color-ink: #13261b;
+  --color-muted: #5f6f65;
+  --color-border: #dfe6dc;
+  --color-border-strong: #a9b8ab;
+  --color-danger: #c2410c;
+  --color-danger-soft: #fff1e8;
+
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-hand: var(--font-caveat), ui-serif, cursive;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+.chalkboard {
+  background-color: var(--color-board);
+  background-image:
+    radial-gradient(circle at 20% 10%, rgb(255 255 255 / 0.06), transparent 40%),
+    radial-gradient(circle at 80% 90%, rgb(255 255 255 / 0.05), transparent 45%);
+}
+
+.notebook {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgb(33 122 67 / 0.07) 31px 32px);
+}
+
+dialog::backdrop {
+  background: rgb(19 38 27 / 0.45);
+  backdrop-filter: blur(2px);
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.bar-grow {
+  transform-origin: left;
+  animation: grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
