@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/app-shell";
-import { WeekdayChart } from "@/components/dashboard/charts";
+import { SeriesChart, WeekdayChart } from "@/components/dashboard/charts";
 import { FocusTable, Heatmap, InsightList, KpiCard, TopActivities, WeeklyTrend } from "@/components/insights/insights-charts";
 import { InsightsFilters } from "@/components/insights/insights-filters";
 import { PageSkeleton } from "@/components/skeleton";
@@ -28,7 +28,7 @@ export default function InsightsPage(props: PageProps<"/analises">) {
 async function Insights({ searchParams }: { searchParams: PageProps<"/analises">["searchParams"] }) {
   const params = await searchParams;
   await connection();
-  const window = isInsightWindow(params.janela) ? params.janela : "90";
+  const window = isInsightWindow(params.janela) ? params.janela : "7";
   const includeFixed = params.fixos === "1";
   const today = todayISO();
   const windowDays = Number(window);
@@ -59,9 +59,18 @@ async function Insights({ searchParams }: { searchParams: PageProps<"/analises">
 
           <Card>
             <CardTitle>Onde está seu foco agora</CardTitle>
-            <p className="-mt-2 mb-4 text-sm text-muted">Últimos 14 dias comparados aos 14 anteriores. Em alta/queda = variação de pelo menos 20%.</p>
-            <FocusTable focus={stats.focus} />
+            <p className="-mt-2 mb-4 text-sm text-muted">
+              Últimos {stats.focusDays} dias comparados aos {stats.focusDays} anteriores. Em alta/queda = variação de pelo menos 20%.
+            </p>
+            <FocusTable focus={stats.focus} days={stats.focusDays} />
           </Card>
+
+          {windowDays <= 30 && (
+            <Card>
+              <CardTitle>Dia a dia</CardTitle>
+              <SeriesChart series={stats.daily} kind="daily" />
+            </Card>
+          )}
 
           <Card>
             <CardTitle>Evolução semanal</CardTitle>

@@ -77,7 +77,7 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
   );
 }
 
-export function FocusTable({ focus }: { focus: Insights["focus"] }) {
+export function FocusTable({ focus, days }: { focus: Insights["focus"]; days: number }) {
   const max = Math.max(...focus.map((category) => category.share), 0.01);
   return (
     <div className="overflow-x-auto">
@@ -85,8 +85,8 @@ export function FocusTable({ focus }: { focus: Insights["focus"] }) {
         <thead>
           <tr className="text-left text-[11px] font-bold tracking-wider text-muted uppercase">
             <th className="pb-2 font-bold">Categoria</th>
-            <th className="pb-2 font-bold">Fatia (14 dias)</th>
-            <th className="pb-2 text-right font-bold">14 dias</th>
+            <th className="pb-2 font-bold">Fatia ({days} dias)</th>
+            <th className="pb-2 text-right font-bold">{days} dias</th>
             <th className="pb-2 text-right font-bold">Antes</th>
             <th className="pb-2 pl-4 font-bold">Tendência</th>
             <th className="pb-2 font-bold">8 semanas</th>

@@ -3,7 +3,7 @@
 Controle do que você faz no seu tempo livre (baseado na planilha "Horas Investidas na Vida") com barra de progresso para estudos de temas novos.
 
 - **Painel**: tempo livre investido, média diária, maior foco, sequência de dias, distribuição por categoria, horas por dia/mês, por dia da semana e dias úteis × fim de semana. Compromissos fixos (ex.: Trabalho CLT) ficam fora por padrão.
-- **Análises**: foco atual por categoria (14 dias × 14 anteriores, com tendência e sparkline), evolução semanal com média móvel e inclinação, mapa de atividade, ritmo por dia da semana, atividades que mais ocupam tempo, projeção do mês e insights automáticos.
+- **Análises**: janelas de 7 dias (padrão), 30, 90 dias ou 12 meses; foco atual por categoria (7 ou 14 dias × período anterior, com tendência e sparkline), gráfico dia a dia, evolução semanal com média móvel e inclinação, mapa de atividade, ritmo por dia da semana, atividades que mais ocupam tempo, projeção do mês e insights automáticos.
 - **Registros**: lançamentos agrupados por dia, com filtros de período, categoria e busca; criar/editar/apagar.
 - **Estudos**: temas com meta total de horas, meta semanal opcional e prazo. Mostra % concluído, média semanal, previsão de término e ritmo necessário para o prazo.
 - **Rotinas**: atividades recorrentes por dia da semana com período (início e fim opcional). As horas entram sozinhas em painel, registros e estudos até hoje; desativar ou apagar a rotina remove tudo.

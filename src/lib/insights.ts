@@ -10,9 +10,10 @@ export type InsightRow = {
   categoryColor: string;
 };
 
-export type InsightWindow = "30" | "90" | "365";
+export type InsightWindow = "7" | "30" | "90" | "365";
 
 export const INSIGHT_WINDOWS: { value: InsightWindow; label: string }[] = [
+  { value: "7", label: "7 dias" },
   { value: "30", label: "30 dias" },
   { value: "90", label: "90 dias" },
   { value: "365", label: "12 meses" },
@@ -43,7 +44,6 @@ type RhythmItem = { value: number; short: string; label: string; average: number
 
 type Projection = { monthSoFar: number; projected: number; monthEnd: string };
 
-const FOCUS_DAYS = 14;
 const SPARK_WEEKS = 8;
 
 const total = (rows: { hours: number }[]) => rows.reduce((sum, row) => sum + row.hours, 0);
@@ -52,7 +52,11 @@ const change = (current: number, previous: number) => (previous > 0 ? (current -
 
 // Days needed before `today` so every block below has its full history.
 export function insightsLookback(windowDays: number) {
-  return Math.max(windowDays * 2, heatmapWeeks(windowDays) * 7 + 7, FOCUS_DAYS * 2, SPARK_WEEKS * 7 + 7);
+  return Math.max(windowDays * 2, heatmapWeeks(windowDays) * 7 + 7, focusDays(windowDays) * 2, SPARK_WEEKS * 7 + 7);
+}
+
+export function focusDays(windowDays: number) {
+  return windowDays <= 7 ? 7 : 14;
 }
 
 function heatmapWeeks(windowDays: number) {
@@ -112,6 +116,7 @@ export function computeInsights(rows: InsightRow[], today: string, windowDays: n
     session: { value: current.length ? curTotal / current.length : 0, count: current.length, change: change(current.length ? curTotal / current.length : 0, previous.length ? prevTotal / previous.length : 0) },
   };
 
+  const FOCUS_DAYS = focusDays(windowDays);
   const recentFrom = addDays(today, -(FOCUS_DAYS - 1));
   const olderTo = addDays(recentFrom, -1);
   const olderFrom = addDays(olderTo, -(FOCUS_DAYS - 1));
@@ -138,6 +143,18 @@ export function computeInsights(rows: InsightRow[], today: string, windowDays: n
     })
     .filter((category) => category.windowHours > 0 || category.recent > 0 || category.older > 0)
     .sort((a, b) => b.recent - a.recent || b.windowHours - a.windowHours);
+
+  const daily = eachDay(curFrom, today).map((date) => {
+    const own = current.filter((row) => row.date === date);
+    const byColor = new Map<string, number>();
+    for (const row of own) byColor.set(row.categoryColor, (byColor.get(row.categoryColor) ?? 0) + row.hours);
+    return {
+      key: date,
+      label: `${date.slice(8, 10)}/${date.slice(5, 7)}`,
+      hours: total(own),
+      segments: [...byColor].map(([color, hours]) => ({ color, hours })).sort((a, b) => b.hours - a.hours),
+    };
+  });
 
   const weeks = seriesWeeks(windowDays);
   const firstWeek = addDays(startOfWeek(today), -(weeks - 1) * 7);
@@ -199,7 +216,9 @@ export function computeInsights(rows: InsightRow[], today: string, windowDays: n
   return {
     range: { from: curFrom, to: today, previousFrom: prevFrom, previousTo: prevTo },
     kpis,
+    focusDays: FOCUS_DAYS,
     focus,
+    daily,
     weekly,
     weeklySlope,
     heatmap,
@@ -210,7 +229,7 @@ export function computeInsights(rows: InsightRow[], today: string, windowDays: n
     projection,
     streak,
     weekendShare,
-    insights: buildInsights({ curTotal, prevTotal, focus, rhythm, weeklySlope, effectiveCategories, streak, weekendShare, projection, windowDays }),
+    insights: buildInsights({ curTotal, prevTotal, focus, rhythm, weeklySlope, effectiveCategories, streak, weekendShare, projection, windowDays, focusDays: FOCUS_DAYS }),
   };
 }
 
@@ -229,6 +248,7 @@ function buildInsights({
   weekendShare,
   projection,
   windowDays,
+  focusDays,
 }: {
   curTotal: number;
   prevTotal: number;
@@ -240,6 +260,7 @@ function buildInsights({
   weekendShare: number;
   projection: Projection;
   windowDays: number;
+  focusDays: number;
 }): Insight[] {
   const list: Insight[] = [];
   const periodChange = change(curTotal, prevTotal);
@@ -254,7 +275,7 @@ function buildInsights({
 
   const [lead] = focus;
   if (lead && lead.recent > 0) {
-    list.push({ tone: "info", icon: "🎯", title: `Seu foco agora é ${lead.name}`, detail: `${formatPercent(lead.share)} das horas dos últimos ${FOCUS_DAYS} dias (${formatHours(lead.recent)}).` });
+    list.push({ tone: "info", icon: "🎯", title: `Seu foco agora é ${lead.name}`, detail: `${formatPercent(lead.share)} das horas dos últimos ${focusDays} dias (${formatHours(lead.recent)}).` });
   }
 
   const rising = focus.filter((c) => c.trend === "up" || c.trend === "new").sort((a, b) => b.recent - b.older - (a.recent - a.older))[0];
@@ -263,13 +284,13 @@ function buildInsights({
       tone: "good",
       icon: "🚀",
       title: rising.trend === "new" ? `${rising.name} entrou na sua rotina` : `${rising.name} está em alta`,
-      detail: rising.trend === "new" ? `${formatHours(rising.recent)} nos últimos ${FOCUS_DAYS} dias, sem nada nos ${FOCUS_DAYS} anteriores.` : `${formatHours(rising.recent)} contra ${formatHours(rising.older)} nas duas semanas anteriores.`,
+      detail: rising.trend === "new" ? `${formatHours(rising.recent)} nos últimos ${focusDays} dias, sem nada nos ${focusDays} anteriores.` : `${formatHours(rising.recent)} contra ${formatHours(rising.older)} nos ${focusDays} dias anteriores.`,
     });
   }
 
   const falling = focus.filter((c) => c.trend === "down").sort((a, b) => a.recent - a.older - (b.recent - b.older))[0];
   if (falling) {
-    list.push({ tone: "warn", icon: "🔻", title: `${falling.name} perdeu espaço`, detail: `${formatHours(falling.recent)} nas últimas 2 semanas, eram ${formatHours(falling.older)}.` });
+    list.push({ tone: "warn", icon: "🔻", title: `${falling.name} perdeu espaço`, detail: `${formatHours(falling.recent)} nos últimos ${focusDays} dias, eram ${formatHours(falling.older)}.` });
   }
 
   const forgotten = focus.filter((c) => c.trend === "idle" && c.daysSince !== null && c.daysSince >= 10).sort((a, b) => b.windowHours - a.windowHours)[0];
