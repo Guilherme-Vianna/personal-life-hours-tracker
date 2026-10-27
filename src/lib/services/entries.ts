@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { categories, entries, studyTopics } from "@/db/schema";
 import { notFound } from "@/lib/api-errors";
 import { entryInput } from "@/lib/validation";
+import { listRoutineEntries } from "./routines";
 
 export type EntryFilters = {
   from?: string | null;
@@ -25,27 +26,32 @@ export async function listEntries(filters: EntryFilters = {}) {
     conditions.push(or(ilike(entries.activity, term), ilike(entries.notes, term))!);
   }
 
-  return db
-    .select({
-      id: entries.id,
-      date: entries.date,
-      activity: entries.activity,
-      hours: entries.hours,
-      notes: entries.notes,
-      categoryId: entries.categoryId,
-      studyTopicId: entries.studyTopicId,
-      routineId: entries.routineId,
-      categoryName: categories.name,
-      categoryColor: categories.color,
-      categoryIsFixed: categories.isFixed,
-      studyTopicName: studyTopics.name,
-    })
-    .from(entries)
-    .innerJoin(categories, eq(categories.id, entries.categoryId))
-    .leftJoin(studyTopics, eq(studyTopics.id, entries.studyTopicId))
-    .where(conditions.length ? and(...conditions) : undefined)
-    .orderBy(desc(entries.date), desc(entries.createdAt))
-    .limit(filters.limit ?? 2000);
+  const [manual, fromRoutines] = await Promise.all([
+    db
+      .select({
+        id: entries.id,
+        date: entries.date,
+        activity: entries.activity,
+        hours: entries.hours,
+        notes: entries.notes,
+        categoryId: entries.categoryId,
+        studyTopicId: entries.studyTopicId,
+        routineId: sql<string | null>`null`,
+        categoryName: categories.name,
+        categoryColor: categories.color,
+        categoryIsFixed: categories.isFixed,
+        studyTopicName: studyTopics.name,
+      })
+      .from(entries)
+      .innerJoin(categories, eq(categories.id, entries.categoryId))
+      .leftJoin(studyTopics, eq(studyTopics.id, entries.studyTopicId))
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(desc(entries.date), desc(entries.createdAt))
+      .limit(filters.limit ?? 2000),
+    listRoutineEntries(filters),
+  ]);
+  const byDateDesc = (a: { date: string }, b: { date: string }) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+  return [...manual, ...fromRoutines].sort(byDateDesc).slice(0, filters.limit ?? 2000);
 }
 
 export type EntryRow = Awaited<ReturnType<typeof listEntries>>[number];

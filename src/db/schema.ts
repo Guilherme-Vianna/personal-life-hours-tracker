@@ -43,6 +43,8 @@ export const routines = pgTable("routines", {
   studyTopicId: uuid("study_topic_id").references(() => studyTopics.id, { onDelete: "set null" }),
   hours: hours("hours").notNull(),
   weekdays: integer("weekdays").array().notNull(),
+  startDate: date("start_date", { mode: "string" }).notNull(),
+  endDate: date("end_date", { mode: "string" }),
   notes: text("notes"),
   active: boolean("active").notNull().default(true),
   ...timestamps,
@@ -60,7 +62,6 @@ export const entries = pgTable(
     hours: hours("hours").notNull(),
     notes: text("notes"),
     studyTopicId: uuid("study_topic_id").references(() => studyTopics.id, { onDelete: "set null" }),
-    routineId: uuid("routine_id").references(() => routines.id, { onDelete: "set null" }),
     ...timestamps,
   },
   (table) => [

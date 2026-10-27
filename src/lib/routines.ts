@@ -1,47 +1,33 @@
-import { eachDay, weekdayOf, WEEKDAYS } from "./dates";
+import { eachDay, weekdayOf } from "./dates";
 
 export type RoutineLike = {
   id: string;
-  activity: string;
-  categoryId: string;
-  studyTopicId: string | null;
   hours: number;
   weekdays: number[];
-  notes: string | null;
+  startDate: string;
+  endDate: string | null;
+  active: boolean;
 };
 
-export type PlannedEntry = {
-  date: string;
-  activity: string;
-  categoryId: string;
-  studyTopicId: string | null;
-  hours: number;
-  notes: string | null;
-  routineId: string;
-};
+export function routineDates(routine: RoutineLike, from: string, to: string) {
+  if (!routine.active) return [];
+  const start = from > routine.startDate ? from : routine.startDate;
+  const end = routine.endDate && routine.endDate < to ? routine.endDate : to;
+  if (start > end) return [];
+  return eachDay(start, end).filter((date) => routine.weekdays.includes(weekdayOf(date)));
+}
 
-const weekdayLabel = new Map<number, string>(WEEKDAYS.map((day) => [day.value, day.label]));
-
-export function planRoutineEntries(routines: RoutineLike[], from: string, to: string): PlannedEntry[] {
-  const planned: PlannedEntry[] = [];
-  for (const date of eachDay(from, to)) {
-    const weekday = weekdayOf(date);
-    for (const routine of routines) {
-      if (!routine.weekdays.includes(weekday)) continue;
-      planned.push({
-        date,
-        activity: routine.activity,
-        categoryId: routine.categoryId,
-        studyTopicId: routine.studyTopicId,
-        hours: routine.hours,
-        notes: routine.notes ? `${routine.notes} (${weekdayLabel.get(weekday)})` : `Rotina (${weekdayLabel.get(weekday)})`,
-        routineId: routine.id,
-      });
-    }
-  }
-  return planned;
+export function routineEntryId(routineId: string, date: string) {
+  return `rotina:${routineId}:${date}`;
 }
 
 export function weeklyHours(routine: Pick<RoutineLike, "hours" | "weekdays">) {
   return routine.hours * routine.weekdays.length;
+}
+
+export function routineStatus(routine: RoutineLike, today: string) {
+  if (!routine.active) return "inactive" as const;
+  if (routine.startDate > today) return "scheduled" as const;
+  if (routine.endDate && routine.endDate < today) return "ended" as const;
+  return "running" as const;
 }

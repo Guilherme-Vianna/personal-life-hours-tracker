@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 const NAV = [
   { href: "/", label: "Painel", icon: "M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" },
+  { href: "/analises", label: "Análises", icon: "M3 3v18h18M7 15l4-4 3 3 5-6" },
   { href: "/registros", label: "Registros", icon: "M4 6h16M4 12h16M4 18h10" },
   { href: "/estudos", label: "Estudos", icon: "M12 6.5 3 11l9 4.5 9-4.5-9-4.5Zm-6 6.3V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.2" },
   { href: "/rotinas", label: "Rotinas", icon: "M4 4v5h5M20 20v-5h-5M5.6 15A7.5 7.5 0 0 0 19 16.5M18.4 9A7.5 7.5 0 0 0 5 7.5" },

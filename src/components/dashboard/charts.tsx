@@ -113,7 +113,7 @@ export function SeriesChart({ series, kind }: { series: DashboardStats["series"]
   );
 }
 
-export function WeekdayChart({ data }: { data: DashboardStats["byWeekday"] }) {
+export function WeekdayChart({ data }: { data: { key: string; label: string; hours: number }[] }) {
   const max = Math.max(...data.map((day) => day.hours), 0.01);
   return (
     <div className="flex h-40 items-end gap-2">

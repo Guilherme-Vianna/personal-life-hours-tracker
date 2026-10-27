@@ -44,23 +44,22 @@ export const topicInput = z
     message: "O prazo precisa ser depois do início",
   });
 
-export const routineInput = z.object({
-  activity: z.string().trim().min(1, "Informe a atividade").max(120),
-  categoryId: z.uuid("Escolha uma categoria"),
-  studyTopicId: z.uuid().nullish().transform((value) => value ?? null),
-  hours,
-  weekdays: z.array(z.number().int().min(0).max(6)).min(1, "Escolha ao menos um dia"),
-  notes: optionalText(300),
-  active: z.boolean().default(true),
-});
-
-export const generateInput = z
+export const routineInput = z
   .object({
-    from: isoDate,
-    to: isoDate,
-    routineIds: z.array(z.uuid()).optional(),
+    activity: z.string().trim().min(1, "Informe a atividade").max(120),
+    categoryId: z.uuid("Escolha uma categoria"),
+    studyTopicId: z.uuid().nullish().transform((value) => value ?? null),
+    hours,
+    weekdays: z.array(z.number().int().min(0).max(6)).min(1, "Escolha ao menos um dia"),
+    startDate: isoDate,
+    endDate: isoDate.nullish().transform((value) => value ?? null),
+    notes: optionalText(300),
+    active: z.boolean().default(true),
   })
-  .refine((range) => range.to >= range.from, { path: ["to"], message: "Data final antes da inicial" });
+  .refine((routine) => !routine.endDate || routine.endDate >= routine.startDate, {
+    path: ["endDate"],
+    message: "A data final precisa ser depois do início",
+  });
 
 export type CategoryInput = z.infer<typeof categoryInput>;
 export type EntryInput = z.infer<typeof entryInput>;

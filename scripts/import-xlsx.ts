@@ -128,7 +128,7 @@ async function main() {
         const categoryId = await ensureCategory(categoryName);
         const [existing] = await db.select({ id: routines.id }).from(routines).where(eq(routines.activity, activity));
         if (existing) continue;
-        await db.insert(routines).values({ activity, categoryId, hours, weekdays, notes: text(row[col("Observações")]) || null, active: weekdays.length > 0 });
+        await db.insert(routines).values({ activity, categoryId, hours, weekdays, startDate: today, notes: text(row[col("Observações")]) || null, active: weekdays.length > 0 });
         count += 1;
       }
       console.log(`Rotinas: ${count} importadas`);

@@ -5,6 +5,7 @@ import { entries, studyTopics, type StudyTopic } from "@/db/schema";
 import { notFound } from "@/lib/api-errors";
 import { topicProgress } from "@/lib/progress";
 import { topicInput } from "@/lib/validation";
+import { listRoutineEntries } from "./routines";
 
 function withProgress(topic: StudyTopic, sessions: { date: string; hours: number }[], today: string) {
   return {
@@ -16,16 +17,17 @@ function withProgress(topic: StudyTopic, sessions: { date: string; hours: number
 }
 
 export async function listTopics(today: string) {
-  const [topics, sessions] = await Promise.all([
+  const [topics, manual, fromRoutines] = await Promise.all([
     db.select().from(studyTopics).orderBy(asc(studyTopics.name)),
-    db.select({ topicId: entries.studyTopicId, date: entries.date, hours: entries.hours }).from(entries).where(isNotNull(entries.studyTopicId)),
+    db.select({ studyTopicId: entries.studyTopicId, date: entries.date, hours: entries.hours }).from(entries).where(isNotNull(entries.studyTopicId)),
+    listRoutineEntries({ to: today }),
   ]);
   const byTopic = new Map<string, { date: string; hours: number }[]>();
-  for (const session of sessions) {
-    if (!session.topicId) continue;
-    const list = byTopic.get(session.topicId) ?? [];
+  for (const session of [...manual, ...fromRoutines]) {
+    if (!session.studyTopicId) continue;
+    const list = byTopic.get(session.studyTopicId) ?? [];
     list.push({ date: session.date, hours: session.hours });
-    byTopic.set(session.topicId, list);
+    byTopic.set(session.studyTopicId, list);
   }
   const order = { active: 0, paused: 1, completed: 2 };
   return topics
@@ -38,8 +40,11 @@ export type TopicWithProgress = Awaited<ReturnType<typeof listTopics>>[number];
 export async function getTopic(id: string, today: string) {
   const [topic] = await db.select().from(studyTopics).where(eq(studyTopics.id, id));
   if (!topic) return null;
-  const sessions = await db.select({ date: entries.date, hours: entries.hours }).from(entries).where(eq(entries.studyTopicId, id));
-  return withProgress(topic, sessions, today);
+  const [manual, fromRoutines] = await Promise.all([
+    db.select({ date: entries.date, hours: entries.hours }).from(entries).where(eq(entries.studyTopicId, id)),
+    listRoutineEntries({ to: today, studyTopicId: id }),
+  ]);
+  return withProgress(topic, [...manual, ...fromRoutines], today);
 }
 
 export async function createTopic(body: unknown) {

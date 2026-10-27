@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api-client";
 import { formatDayHeading } from "@/lib/dates";
@@ -34,11 +35,16 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
                   <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
                     <span>{entry.categoryName}</span>
                     {entry.studyTopicName && <span className="rounded bg-brand-50 px-1.5 font-semibold text-brand-800">🎓 {entry.studyTopicName}</span>}
-                    {entry.routineId && <span className="rounded bg-slate-100 px-1.5 font-semibold text-slate-600">rotina</span>}
+                    {entry.routineId && <span className="rounded bg-slate-100 px-1.5 font-semibold text-slate-600">🔁 rotina</span>}
                     {entry.notes && <span className="truncate">· {entry.notes}</span>}
                   </p>
                 </div>
                 <span className="shrink-0 font-bold tabular-nums">{formatHours(entry.hours)}</span>
+                {entry.routineId ? (
+                  <Link href="/rotinas" aria-label={`Editar rotina ${entry.activity}`} title="Gerado pela rotina — edite em Rotinas" className="shrink-0 rounded-lg p-2 text-muted hover:bg-brand-50 hover:text-brand-800 sm:opacity-0 sm:transition sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+                    <IconPencil />
+                  </Link>
+                ) : (
                 <div className="flex shrink-0 gap-1 sm:opacity-0 sm:transition sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
                   <button type="button" onClick={() => open(entry)} aria-label={`Editar ${entry.activity}`} className="rounded-lg p-2 text-muted hover:bg-brand-50 hover:text-brand-800">
                     <IconPencil />
@@ -57,6 +63,7 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
                     <span className="sr-only">Apagar {entry.activity}</span>
                   </ConfirmButton>
                 </div>
+                )}
               </li>
             ))}
           </ul>

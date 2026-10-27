@@ -30,7 +30,7 @@ export function AppShell({ children, authEnabled }: { children: ReactNode; authE
           <QuickAddButton className="bg-pencil! px-3! py-2! text-board-dark!">+ Registrar</QuickAddButton>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-28 sm:px-6 lg:px-10 lg:pt-10 lg:pb-12">{children}</main>
-        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 backdrop-blur lg:hidden" aria-label="Principal (celular)">
+        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-border bg-surface/95 backdrop-blur lg:hidden" aria-label="Principal (celular)">
           <Suspense fallback={<NavLinks variant="bottom" pathname={null} />}>
             <NavLinks variant="bottom" />
           </Suspense>

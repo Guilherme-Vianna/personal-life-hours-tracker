@@ -8,6 +8,13 @@
       "when": 1792981133896,
       "tag": "0000_demonic_vision",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793063893350,
+      "tag": "0001_gigantic_zeigeist",
+      "breakpoints": true
     }
   ]
 }

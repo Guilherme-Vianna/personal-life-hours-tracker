@@ -1,5 +1,6 @@
 import "server-only";
 import { addDays, eachDay, MONTHS, periodRange, weekdayOf, WEEKDAYS, type Period } from "@/lib/dates";
+import { computeInsights, insightsLookback } from "@/lib/insights";
 import { listCategories } from "./categories";
 import { listEntries, type EntryRow } from "./entries";
 
@@ -107,4 +108,9 @@ function freeTimeStreak(rows: EntryRow[], today: string) {
     day = addDays(day, -1);
   }
   return streak;
+}
+
+export async function insightsStats({ windowDays, includeFixed, today }: { windowDays: number; includeFixed: boolean; today: string }) {
+  const rows = await listEntries({ from: addDays(today, -insightsLookback(windowDays)), to: today, limit: 100_000 });
+  return computeInsights(includeFixed ? rows : rows.filter((entry) => !entry.categoryIsFixed), today, windowDays);
 }

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Caveat, Nunito } from "next/font/google";
+import { PinPrompt } from "@/components/pin-prompt";
 import { ToastProvider } from "@/components/toast";
 import "./globals.css";
 
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pt-BR" className={`${nunito.variable} ${caveat.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {children}
+          <PinPrompt />
+        </ToastProvider>
       </body>
     </html>
   );

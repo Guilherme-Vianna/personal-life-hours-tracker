@@ -3,9 +3,10 @@
 Controle do que você faz no seu tempo livre (baseado na planilha "Horas Investidas na Vida") com barra de progresso para estudos de temas novos.
 
 - **Painel**: tempo livre investido, média diária, maior foco, sequência de dias, distribuição por categoria, horas por dia/mês, por dia da semana e dias úteis × fim de semana. Compromissos fixos (ex.: Trabalho CLT) ficam fora por padrão.
+- **Análises**: foco atual por categoria (14 dias × 14 anteriores, com tendência e sparkline), evolução semanal com média móvel e inclinação, mapa de atividade, ritmo por dia da semana, atividades que mais ocupam tempo, projeção do mês e insights automáticos.
 - **Registros**: lançamentos agrupados por dia, com filtros de período, categoria e busca; criar/editar/apagar.
 - **Estudos**: temas com meta total de horas, meta semanal opcional e prazo. Mostra % concluído, média semanal, previsão de término e ritmo necessário para o prazo.
-- **Rotinas**: atividades recorrentes por dia da semana e gerador de lançamentos (sem duplicar).
+- **Rotinas**: atividades recorrentes por dia da semana com período (início e fim opcional). As horas entram sozinhas em painel, registros e estudos até hoje; desativar ou apagar a rotina remove tudo.
 - **Categorias**: cor, descrição e marcação de "compromisso fixo".
 
 ## Stack
@@ -36,7 +37,7 @@ Importa categorias, registros e rotinas. Pode rodar de novo sem duplicar. Regist
 
 1. Crie um projeto no Neon e copie a connection string.
 2. Rode `pnpm db:migrate` apontando `DATABASE_URL` para o Neon.
-3. Na Vercel, configure `DATABASE_URL` e, para proteger o app, `APP_PASSWORD` e `AUTH_SECRET`.
+3. Na Vercel, configure `DATABASE_URL` e, para proteger o app, `APP_PASSWORD`, `AUTH_SECRET` e `WRITE_PIN` (senha pedida antes de criar, editar ou apagar dados).
 
 ## API
 
@@ -50,8 +51,9 @@ Importa categorias, registros e rotinas. Pode rodar de novo sem duplicar. Regist
 | GET / PUT / DELETE | `/api/topics/:id` | Detalhe / atualiza / apaga |
 | GET / POST | `/api/routines` | Rotinas / cria |
 | PUT / DELETE | `/api/routines/:id` | Atualiza / apaga |
-| POST | `/api/routines/generate` | `{ from, to, routineIds? }` gera lançamentos |
 | GET | `/api/stats` | Estatísticas do painel (`period`, `includeFixed`) |
 | GET | `/api/activities` | Sugestões de atividades já usadas |
 
-Erros de validação retornam 422 com `fieldErrors`.
+| POST / DELETE | `/api/auth/unlock` | `{ pin }` libera escrita por 10 min / bloqueia |
+
+Erros de validação retornam 422 com `fieldErrors`. Com `WRITE_PIN` definido, qualquer POST/PUT/DELETE sem desbloqueio retorna 401 com `code: "write_locked"`.
