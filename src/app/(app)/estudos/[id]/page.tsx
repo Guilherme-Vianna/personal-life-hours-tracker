@@ -11,7 +11,7 @@ import { PaceBadge } from "@/components/study/topic-card";
 import { TopicFormButton } from "@/components/study/topic-form";
 import { Card, CardTitle, EmptyState, ProgressBar } from "@/components/ui";
 import { addDays, formatDate, startOfWeek, todayISO } from "@/lib/dates";
-import { formatHours } from "@/lib/format";
+import { formatHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import { listCategories } from "@/lib/services/categories";
 import { listEntries, type EntryRow } from "@/lib/services/entries";
 import { getTopic } from "@/lib/services/topics";
@@ -89,6 +89,11 @@ async function Topic({ params }: { params: PageProps<"/estudos/[id]">["params"] 
       </dl>
 
       <Card>
+        <CardTitle>Teórico × Prático</CardTitle>
+        <StudyTypeSplit sessions={sessions} />
+      </Card>
+
+      <Card>
         <CardTitle>Horas por semana (últimas 12)</CardTitle>
         <WeeklyBars sessions={sessions} today={today} goal={topic.weeklyGoalHours ?? progress.requiredWeeklyPace} />
       </Card>
@@ -111,6 +116,29 @@ function Stat({ label, value, detail }: { label: string; value: string; detail: 
       <dt className="text-[11px] font-bold tracking-wider text-muted uppercase">{label}</dt>
       <dd className="mt-1 text-xl font-extrabold">{value}</dd>
       <dd className="text-xs text-muted">{detail}</dd>
+    </div>
+  );
+}
+
+function StudyTypeSplit({ sessions }: { sessions: EntryRow[] }) {
+  const practice = sessions.filter((s) => s.studyType === "practice").reduce((t, s) => t + s.hours, 0);
+  const theory = sessions.reduce((t, s) => t + s.hours, 0) - practice;
+  const total = theory + practice;
+  if (!total) return <p className="text-sm text-muted">Nenhuma hora registrada ainda.</p>;
+  const practicePercent = (practice / total) * 100;
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex h-4 overflow-hidden rounded-full bg-sky-200" role="img" aria-label={`${Math.round(100 - practicePercent)}% teórico, ${Math.round(practicePercent)}% prático`}>
+        <div className="bg-pencil" style={{ width: `${practicePercent}%`, marginLeft: `${100 - practicePercent}%` }} />
+      </div>
+      <div className="flex justify-between text-sm">
+        <span>
+          📖 {STUDY_TYPE_LABELS.theory}: <strong>{formatHours(theory)}</strong> ({Math.round(100 - practicePercent)}%)
+        </span>
+        <span>
+          🛠️ {STUDY_TYPE_LABELS.practice}: <strong>{formatHours(practice)}</strong> ({Math.round(practicePercent)}%)
+        </span>
+      </div>
     </div>
   );
 }

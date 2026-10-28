@@ -7,6 +7,8 @@ export function formatPercent(ratio: number) {
   return `${Math.round(ratio * 100)}%`;
 }
 
+export const STUDY_TYPE_LABELS = { theory: "Teórico", practice: "Prático" } as const;
+
 export function parseHours(input: string) {
   const value = Number(input.trim().replace(",", "."));
   return Number.isFinite(value) ? value : NaN;

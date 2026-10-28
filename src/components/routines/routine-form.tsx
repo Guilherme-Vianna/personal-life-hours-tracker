@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { ApiClientError, apiRequest } from "@/lib/api-client";
 import { todayISO, WEEKDAYS } from "@/lib/dates";
+import type { StudyType } from "@/db/schema";
 import { hoursToInput, parseHours } from "@/lib/format";
 import { Button, Field, inputClass, Modal } from "@/components/ui";
+import { StudyTypePicker } from "@/components/entries/entry-form";
 import { Toggle } from "@/components/filters";
 import { useToast } from "@/components/toast";
 
@@ -14,6 +16,7 @@ export type RoutineDraft = {
   activity: string;
   categoryId: string;
   studyTopicId: string | null;
+  studyType: StudyType | null;
   hours: number;
   weekdays: number[];
   startDate: string;
@@ -23,6 +26,7 @@ export type RoutineDraft = {
 };
 
 type Option = { id: string; name: string };
+type TopicOption = Option & { categoryId: string | null };
 
 export function RoutineFormButton({
   categories,
@@ -33,7 +37,7 @@ export function RoutineFormButton({
   className,
 }: {
   categories: Option[];
-  topics: Option[];
+  topics: TopicOption[];
   initial?: RoutineDraft;
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost";
@@ -52,13 +56,14 @@ export function RoutineFormButton({
   );
 }
 
-function RoutineForm({ categories, topics, initial, onDone }: { categories: Option[]; topics: Option[]; initial?: RoutineDraft; onDone: () => void }) {
+function RoutineForm({ categories, topics, initial, onDone }: { categories: Option[]; topics: TopicOption[]; initial?: RoutineDraft; onDone: () => void }) {
   const id = useId();
   const router = useRouter();
   const toast = useToast();
   const [activity, setActivity] = useState(initial?.activity ?? "");
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? "");
   const [studyTopicId, setStudyTopicId] = useState(initial?.studyTopicId ?? "");
+  const [studyType, setStudyType] = useState<StudyType>(initial?.studyType ?? "theory");
   const [hours, setHours] = useState(hoursToInput(initial?.hours));
   const [weekdays, setWeekdays] = useState<number[]>(initial?.weekdays ?? [1, 2, 3, 4, 5]);
   const [startDate, setStartDate] = useState(initial?.startDate ?? todayISO());
@@ -67,6 +72,8 @@ function RoutineForm({ categories, topics, initial, onDone }: { categories: Opti
   const [active, setActive] = useState(initial?.active ?? true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+
+  const isStudy = Boolean(studyTopicId) || topics.some((topic) => topic.categoryId && topic.categoryId === categoryId);
 
   function toggleDay(day: number) {
     setWeekdays((current) => (current.includes(day) ? current.filter((d) => d !== day) : [...current, day]));
@@ -87,7 +94,7 @@ function RoutineForm({ categories, topics, initial, onDone }: { categories: Opti
 
     setBusy(true);
     try {
-      const body = { activity, categoryId, studyTopicId: studyTopicId || null, hours: parsed, weekdays, startDate, endDate: endDate || null, notes, active };
+      const body = { activity, categoryId, studyTopicId: studyTopicId || null, studyType: isStudy ? studyType : null, hours: parsed, weekdays, startDate, endDate: endDate || null, notes, active };
       await apiRequest(initial?.id ? `/api/routines/${initial.id}` : "/api/routines", { method: initial?.id ? "PUT" : "POST", body });
       toast(initial ? "Rotina atualizada" : "Rotina criada");
       onDone();
@@ -162,6 +169,7 @@ function RoutineForm({ categories, topics, initial, onDone }: { categories: Opti
           </select>
         </Field>
       )}
+      {isStudy && <StudyTypePicker value={studyType} onChange={setStudyType} error={errors.studyType} />}
       <Field label="Observações (opcional)" htmlFor={`${id}-notes`}>
         <input id={`${id}-notes`} className={inputClass} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex.: Expediente CLT" />
       </Field>

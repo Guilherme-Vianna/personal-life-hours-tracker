@@ -9,6 +9,11 @@ const optionalText = (max: number) =>
     .nullish()
     .transform((value) => value || null);
 const hours = z.coerce.number({ error: "Informe as horas" }).gt(0, "Precisa ser maior que zero").max(24, "No máximo 24h");
+const studyType = z.enum(["theory", "practice"]).nullish().transform((value) => value ?? null);
+const withDefaultStudyType = <T extends { studyTopicId: string | null; studyType: "theory" | "practice" | null }>(value: T) => ({
+  ...value,
+  studyType: value.studyType ?? (value.studyTopicId ? ("theory" as const) : null),
+});
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida");
 
 export const categoryInput = z.object({
@@ -25,7 +30,8 @@ export const entryInput = z.object({
   hours,
   notes: optionalText(500),
   studyTopicId: z.uuid().nullish().transform((value) => value ?? null),
-});
+  studyType,
+}).transform(withDefaultStudyType);
 
 export const topicInput = z
   .object({
@@ -49,6 +55,7 @@ export const routineInput = z
     activity: z.string().trim().min(1, "Informe a atividade").max(120),
     categoryId: z.uuid("Escolha uma categoria"),
     studyTopicId: z.uuid().nullish().transform((value) => value ?? null),
+    studyType,
     hours,
     weekdays: z.array(z.number().int().min(0).max(6)).min(1, "Escolha ao menos um dia"),
     startDate: isoDate,
@@ -59,7 +66,8 @@ export const routineInput = z
   .refine((routine) => !routine.endDate || routine.endDate >= routine.startDate, {
     path: ["endDate"],
     message: "A data final precisa ser depois do início",
-  });
+  })
+  .transform(withDefaultStudyType);
 
 export type CategoryInput = z.infer<typeof categoryInput>;
 export type EntryInput = z.infer<typeof entryInput>;

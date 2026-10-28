@@ -3,6 +3,11 @@ import { boolean, date, index, integer, numeric, pgTable, text, timestamp, uuid 
 
 const hours = (name: string) => numeric(name, { precision: 6, scale: 2, mode: "number" });
 
+export const STUDY_TYPES = ["theory", "practice"] as const;
+export type StudyType = (typeof STUDY_TYPES)[number];
+
+const studyType = () => text("study_type", { enum: STUDY_TYPES });
+
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
@@ -41,6 +46,7 @@ export const routines = pgTable("routines", {
     .notNull()
     .references(() => categories.id, { onDelete: "cascade" }),
   studyTopicId: uuid("study_topic_id").references(() => studyTopics.id, { onDelete: "set null" }),
+  studyType: studyType(),
   hours: hours("hours").notNull(),
   weekdays: integer("weekdays").array().notNull(),
   startDate: date("start_date", { mode: "string" }).notNull(),
@@ -62,6 +68,7 @@ export const entries = pgTable(
     hours: hours("hours").notNull(),
     notes: text("notes"),
     studyTopicId: uuid("study_topic_id").references(() => studyTopics.id, { onDelete: "set null" }),
+    studyType: studyType(),
     ...timestamps,
   },
   (table) => [

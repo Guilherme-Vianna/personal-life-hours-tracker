@@ -28,7 +28,7 @@ async function Routines() {
   await connection();
   const today = todayISO();
   const [routines, categories, topics] = await Promise.all([listRoutines(), listCategories(), listTopics(today)]);
-  const topicOptions = topics.filter((topic) => topic.status !== "completed").map((topic) => ({ id: topic.id, name: topic.name }));
+  const topicOptions = topics.filter((topic) => topic.status !== "completed").map((topic) => ({ id: topic.id, name: topic.name, categoryId: topic.categoryId }));
   const active = routines.filter((routine) => routineStatus(routine, today) === "running");
   const accumulated = routines.reduce((total, routine) => total + routineDates(routine, routine.startDate, today).length * routine.hours, 0);
   const perWeek = active.reduce((total, routine) => total + weeklyHours(routine), 0);

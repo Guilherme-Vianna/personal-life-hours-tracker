@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api-client";
 import { formatDayHeading } from "@/lib/dates";
-import { formatHours } from "@/lib/format";
+import { formatHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import type { EntryRow } from "@/lib/services/entries";
 import { ConfirmButton, IconPencil, IconTrash } from "@/components/ui";
 import { useToast } from "@/components/toast";
@@ -35,6 +35,11 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
                   <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
                     <span>{entry.categoryName}</span>
                     {entry.studyTopicName && <span className="rounded bg-brand-50 px-1.5 font-semibold text-brand-800">🎓 {entry.studyTopicName}</span>}
+                    {entry.studyType && (
+                      <span className={`rounded px-1.5 font-semibold ${entry.studyType === "practice" ? "bg-pencil-soft text-amber-800" : "bg-sky-50 text-sky-800"}`}>
+                        {entry.studyType === "practice" ? "🛠️" : "📖"} {STUDY_TYPE_LABELS[entry.studyType]}
+                      </span>
+                    )}
                     {entry.routineId && <span className="rounded bg-slate-100 px-1.5 font-semibold text-slate-600">🔁 rotina</span>}
                     {entry.notes && <span className="truncate">· {entry.notes}</span>}
                   </p>

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api-client";
 import { formatDate, WEEKDAYS } from "@/lib/dates";
-import { formatHours } from "@/lib/format";
+import { formatHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import { routineStatus, weeklyHours } from "@/lib/routines";
 import type { RoutineRow } from "@/lib/services/routines";
 import { ConfirmButton, IconPencil, IconTrash } from "@/components/ui";
@@ -24,7 +24,7 @@ function periodLabel(routine: RoutineRow) {
   return routine.endDate ? `${format(routine.startDate)} até ${format(routine.endDate)}` : `desde ${format(routine.startDate)} · sem data final`;
 }
 
-export function RoutineList({ routines, categories, topics, today }: { routines: RoutineRow[]; categories: Option[]; topics: Option[]; today: string }) {
+export function RoutineList({ routines, categories, topics, today }: { routines: RoutineRow[]; categories: Option[]; topics: (Option & { categoryId: string | null })[]; today: string }) {
   const router = useRouter();
   const toast = useToast();
   return (
@@ -39,7 +39,7 @@ export function RoutineList({ routines, categories, topics, today }: { routines:
               {routine.activity} {status && <span className="ml-1 rounded bg-slate-100 px-1.5 text-[10px] font-bold text-slate-500 uppercase">{status}</span>}
             </p>
             <p className="text-xs text-muted">
-              {routine.categoryName} · {formatHours(routine.hours)}/dia{routine.studyTopicName ? ` · 🎓 ${routine.studyTopicName}` : ""}{routine.notes ? ` · ${routine.notes}` : ""}
+              {routine.categoryName} · {formatHours(routine.hours)}/dia{routine.studyTopicName ? ` · 🎓 ${routine.studyTopicName}` : ""}{routine.studyType ? ` · ${STUDY_TYPE_LABELS[routine.studyType]}` : ""}{routine.notes ? ` · ${routine.notes}` : ""}
             </p>
             <p className="text-xs text-muted">{periodLabel(routine)}</p>
             <div className="mt-2 flex gap-1">

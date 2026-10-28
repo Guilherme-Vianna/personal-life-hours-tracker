@@ -36,6 +36,7 @@ export async function listEntries(filters: EntryFilters = {}) {
         notes: entries.notes,
         categoryId: entries.categoryId,
         studyTopicId: entries.studyTopicId,
+        studyType: entries.studyType,
         routineId: sql<string | null>`null`,
         categoryName: categories.name,
         categoryColor: categories.color,
@@ -80,11 +81,12 @@ export async function activitySuggestions() {
       activity: entries.activity,
       categoryId: entries.categoryId,
       studyTopicId: entries.studyTopicId,
+      studyType: entries.studyType,
       lastUsed: max(entries.date),
       uses: sql<number>`count(*)`.mapWith(Number),
     })
     .from(entries)
-    .groupBy(entries.activity, entries.categoryId, entries.studyTopicId)
+    .groupBy(entries.activity, entries.categoryId, entries.studyTopicId, entries.studyType)
     .orderBy(desc(max(entries.date)))
     .limit(200);
   const seen = new Set<string>();

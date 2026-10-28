@@ -3,12 +3,13 @@
 import { useId, useState, type FormEvent } from "react";
 import { ApiClientError, apiRequest } from "@/lib/api-client";
 import { addDays } from "@/lib/dates";
-import { hoursToInput, parseHours } from "@/lib/format";
+import type { StudyType } from "@/db/schema";
+import { hoursToInput, parseHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import { Button, Field, inputClass } from "@/components/ui";
 
 export type CategoryOption = { id: string; name: string; color: string };
 export type TopicOption = { id: string; name: string; categoryId: string | null; status: string };
-export type SuggestionOption = { activity: string; categoryId: string; studyTopicId: string | null };
+export type SuggestionOption = { activity: string; categoryId: string; studyTopicId: string | null; studyType: StudyType | null };
 
 export type EntryDraft = {
   id?: string;
@@ -18,6 +19,7 @@ export type EntryDraft = {
   hours: number | null;
   notes: string | null;
   studyTopicId: string | null;
+  studyType: StudyType | null;
 };
 
 const HOUR_CHIPS = [0.5, 1, 1.5, 2, 3, 4];
@@ -45,11 +47,13 @@ export function EntryForm({
   const [hours, setHours] = useState(hoursToInput(initial?.hours));
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [studyTopicId, setStudyTopicId] = useState(initial?.studyTopicId ?? "");
+  const [studyType, setStudyType] = useState<StudyType>(initial?.studyType ?? "theory");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
 
   const activeTopics = topics.filter((topic) => topic.status !== "completed" || topic.id === studyTopicId);
+  const isStudy = Boolean(studyTopicId) || topics.some((topic) => topic.categoryId && topic.categoryId === categoryId);
 
   function pickActivity(value: string) {
     setActivity(value);
@@ -57,6 +61,7 @@ export function EntryForm({
     if (match) {
       setCategoryId(match.categoryId);
       if (match.studyTopicId) setStudyTopicId(match.studyTopicId);
+      if (match.studyType) setStudyType(match.studyType);
     }
   }
 
@@ -78,7 +83,7 @@ export function EntryForm({
 
     setBusy(true);
     try {
-      const body = { date, activity, categoryId, hours: parsed, notes: notes || null, studyTopicId: studyTopicId || null };
+      const body = { date, activity, categoryId, hours: parsed, notes: notes || null, studyTopicId: studyTopicId || null, studyType: isStudy ? studyType : null };
       await apiRequest(editing ? `/api/entries/${initial!.id}` : "/api/entries", { method: editing ? "PUT" : "POST", body });
       const message = `${editing ? "Atualizado" : "Registrado"}: ${activity} · ${hoursToInput(parsed)}h`;
       if (keepOpen) {
@@ -204,6 +209,8 @@ export function EntryForm({
         </Field>
       )}
 
+      {isStudy && <StudyTypePicker value={studyType} onChange={setStudyType} error={errors.studyType} />}
+
       <Field label="Observações (opcional)" htmlFor={`${id}-notes`}>
         <textarea id={`${id}-notes`} rows={2} className={inputClass} value={notes} onChange={(event) => setNotes(event.target.value)} />
       </Field>
@@ -221,5 +228,31 @@ export function EntryForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+export function StudyTypePicker({ value, onChange, error }: { value: StudyType; onChange: (value: StudyType) => void; error?: string }) {
+  return (
+    <Field label="Tipo de estudo" error={error} hint="Teórico: aulas, leitura, cursos. Prático: exercícios, projetos, mão na massa.">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de estudo">
+        {(["theory", "practice"] as const).map((option) => {
+          const selected = option === value;
+          return (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onChange(option)}
+              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                selected ? "border-transparent bg-brand-600 text-white shadow-sm" : "border-border bg-surface text-ink hover:border-brand-300"
+              }`}
+            >
+              {option === "theory" ? "📖" : "🛠️"} {STUDY_TYPE_LABELS[option]}
+            </button>
+          );
+        })}
+      </div>
+    </Field>
   );
 }

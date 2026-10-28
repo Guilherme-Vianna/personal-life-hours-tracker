@@ -26,6 +26,8 @@ Personal time tracker (free time + study topics with hour targets), ported from 
 - Dates are `YYYY-MM-DD` strings; "today" is `todayISO()` in `NEXT_PUBLIC_TIME_ZONE` (default America/Sao_Paulo).
   Weekdays use JS numbering (0 = Sunday).
 - Categories marked `isFixed` (e.g. Trabalho CLT) are excluded from "free time" on the dashboard unless toggled.
+- Entries and routines have a nullable `studyType` (`theory` | `practice`). Forms ask for it when a study topic is set or
+  the category belongs to a topic; the API defaults it to `theory` when `studyTopicId` is set and it is missing.
 - Study progress math is pure in `src/lib/progress.ts` (pace window: last 28 days, min 7).
 - Routines are never materialized as entries: `listRoutineEntries` (`src/lib/services/routines.ts`) expands them on read
   between `startDate` and `endDate ?? today` (capped at today) and `listEntries`/topics merge them in. Virtual rows have
