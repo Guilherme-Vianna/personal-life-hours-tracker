@@ -38,6 +38,8 @@ export async function listEntries(filters: EntryFilters = {}) {
         studyTopicId: entries.studyTopicId,
         studyType: entries.studyType,
         routineId: sql<string | null>`null`,
+        createdAt: entries.createdAt,
+        updatedAt: entries.updatedAt,
         categoryName: categories.name,
         categoryColor: categories.color,
         categoryIsFixed: categories.isFixed,

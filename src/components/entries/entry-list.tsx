@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api-client";
-import { formatDayHeading } from "@/lib/dates";
+import { formatDayHeading, formatTimestamp } from "@/lib/dates";
 import { formatHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import type { EntryRow } from "@/lib/services/entries";
 import { ConfirmButton, IconPencil, IconTrash } from "@/components/ui";
@@ -43,6 +43,7 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
                     {entry.routineId && <span className="rounded bg-slate-100 px-1.5 font-semibold text-slate-600">🔁 rotina</span>}
                     {entry.notes && <span className="truncate">· {entry.notes}</span>}
                   </p>
+                  {entry.createdAt && <LoggedAt createdAt={entry.createdAt} updatedAt={entry.updatedAt} />}
                 </div>
                 <span className="shrink-0 font-bold tabular-nums">{formatHours(entry.hours)}</span>
                 {entry.routineId ? (
@@ -76,5 +77,15 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
       ))}
       {modal}
     </div>
+  );
+}
+
+function LoggedAt({ createdAt, updatedAt }: { createdAt: Date | string; updatedAt: Date | string | null }) {
+  const edited = updatedAt && new Date(updatedAt).getTime() - new Date(createdAt).getTime() > 60_000;
+  return (
+    <p className="text-[11px] text-muted tabular-nums" title="Momento em que o registro foi feito no app">
+      🕒 lançado em {formatTimestamp(createdAt)}
+      {edited && <> · editado em {formatTimestamp(updatedAt)}</>}
+    </p>
   );
 }

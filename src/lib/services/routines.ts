@@ -64,6 +64,8 @@ export async function listRoutineEntries(filters: RoutineEntryFilters = {}) {
         studyTopicId: routine.studyTopicId,
         studyType: routine.studyType,
         routineId: routine.id as string | null,
+        createdAt: null as Date | null,
+        updatedAt: null as Date | null,
         categoryName: routine.categoryName,
         categoryColor: routine.categoryColor,
         categoryIsFixed: routine.categoryIsFixed,

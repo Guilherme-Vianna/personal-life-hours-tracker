@@ -54,6 +54,12 @@ export function eachDay(from: string, to: string) {
   return days;
 }
 
+export function formatTimestamp(value: Date | string) {
+  const parts = new Intl.DateTimeFormat("pt-BR", { timeZone: TIME_ZONE, day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value;
+  return `${part("day")}/${part("month")} às ${part("hour")}:${part("minute")}`;
+}
+
 export function formatDate(iso: string, options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short" }) {
   return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", ...options }).format(toUTC(iso));
 }
