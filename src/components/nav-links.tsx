@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/", label: "Painel", icon: "M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" },
@@ -42,21 +42,4 @@ function StaticNavLinks({ variant, pathname }: { variant: "sidebar" | "bottom"; 
 
 export function NavLinks({ variant, pathname }: { variant: "sidebar" | "bottom"; pathname?: string | null }) {
   return pathname === undefined ? <CurrentNavLinks variant={variant} /> : <StaticNavLinks variant={variant} pathname={pathname} />;
-}
-
-export function LogoutButton() {
-  const router = useRouter();
-  return (
-    <button
-      type="button"
-      onClick={async () => {
-        await fetch("/api/auth", { method: "DELETE" });
-        router.replace("/entrar");
-        router.refresh();
-      }}
-      className="text-xs text-chalk/60 hover:text-chalk"
-    >
-      Sair
-    </button>
-  );
 }

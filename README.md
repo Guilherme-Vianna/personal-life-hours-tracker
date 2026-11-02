@@ -37,7 +37,7 @@ Importa categorias, registros e rotinas. Pode rodar de novo sem duplicar. Regist
 
 1. Crie um projeto no Neon e copie a connection string.
 2. Rode `pnpm db:migrate` apontando `DATABASE_URL` para o Neon.
-3. Na Vercel, configure `DATABASE_URL` e, para proteger o app, `APP_PASSWORD`, `AUTH_SECRET` e `WRITE_PIN` (senha pedida antes de criar, editar ou apagar dados).
+3. Na Vercel, configure `DATABASE_URL`. O app não tem senha: qualquer pessoa com o link consegue ver e editar os dados.
 
 ## API
 
@@ -54,6 +54,4 @@ Importa categorias, registros e rotinas. Pode rodar de novo sem duplicar. Regist
 | GET | `/api/stats` | Estatísticas do painel (`period`, `includeFixed`) |
 | GET | `/api/activities` | Sugestões de atividades já usadas |
 
-| POST / DELETE | `/api/auth/unlock` | `{ pin }` libera escrita por 10 min / bloqueia |
-
-Erros de validação retornam 422 com `fieldErrors`. Com `WRITE_PIN` definido, qualquer POST/PUT/DELETE sem desbloqueio retorna 401 com `code: "write_locked"`.
+Erros de validação retornam 422 com `fieldErrors`.

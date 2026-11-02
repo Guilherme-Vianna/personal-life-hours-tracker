@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { QuickAddButton } from "@/components/entries/quick-add";
-import { LogoutButton, NavLinks } from "@/components/nav-links";
+import { NavLinks } from "@/components/nav-links";
 
-export function AppShell({ children, authEnabled }: { children: ReactNode; authEnabled: boolean }) {
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh">
       <aside className="chalkboard sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r-8 border-[#8b5e3c] px-4 py-6 text-chalk lg:flex">
@@ -16,9 +16,8 @@ export function AppShell({ children, authEnabled }: { children: ReactNode; authE
             <NavLinks variant="sidebar" />
           </Suspense>
         </nav>
-        <div className="mt-auto flex flex-col gap-3">
+        <div className="mt-auto">
           <QuickAddButton className="w-full bg-pencil! text-board-dark! hover:brightness-95" />
-          {authEnabled && <LogoutButton />}
         </div>
       </aside>
 
