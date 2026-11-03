@@ -34,6 +34,14 @@ Personal time tracker (free time + study topics with hour targets), ported from 
 - `/analises` math is pure in `src/lib/insights.ts` (window vs previous window, 14-day focus, weekly trend, heatmap).
 - No authentication: no password, PIN or proxy by design (single-user app); don't reintroduce unless asked.
 - Theme: school green palette (`brand-*`, `board`, `chalk`, `pencil` tokens in `src/app/globals.css`), fonts Nunito + Caveat.
+- Mobile first-class (below `lg` the sidebar becomes `MobileNav`: Painel, Registros, Registrar, Estudos, "Mais" sheet). Layout rules:
+  - Always give grids explicit columns (`grid-cols-1 md:grid-cols-2`, `minmax(0,…)`): an implicit `auto` column grows with its
+    content and pushes the whole page wider than the screen. Chart columns in `flex` need `min-w-0`.
+  - `Modal` is a bottom sheet below `sm`; form buttons go in `FormActions` (sticky there). Use `hasFinePointer()` for `autoFocus`
+    so the keyboard doesn't open by itself on touch screens.
+  - `inputClass` is 16px on phones (smaller makes iOS zoom in); touch targets are at least 40px (`iconButtonClass`, `min-h-*` + `sm:min-h-0`).
+  - Hover-only UI uses `pointer-fine:` rather than `sm:`, since tablets have no hover.
+  - Horizontally scrolling charts use `[direction:rtl]` on the scroller and `[direction:ltr]` inside, so they open on the latest data.
 
 ## Commands
 

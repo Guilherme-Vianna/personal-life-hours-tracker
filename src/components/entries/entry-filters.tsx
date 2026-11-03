@@ -18,8 +18,8 @@ export function EntryFilters({ period, categoryId, q, categories }: { period: Pe
   return (
     <div className={`flex flex-col gap-3 transition-opacity xl:flex-row xl:items-center ${pending ? "opacity-60" : ""}`}>
       <Segmented label="Período" options={PERIODS} value={period} onChange={(value) => update({ periodo: value === "30d" ? null : value })} />
-      <div className="flex flex-1 gap-2">
-        <select aria-label="Categoria" className={`${inputClass} max-w-52`} value={categoryId} onChange={(event) => update({ categoria: event.target.value })}>
+      <div className="flex flex-1 flex-col gap-2 sm:flex-row">
+        <select aria-label="Categoria" className={`${inputClass} sm:max-w-52`} value={categoryId} onChange={(event) => update({ categoria: event.target.value })}>
           <option value="">Todas as categorias</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>

@@ -12,7 +12,7 @@ export function DeleteTopicButton({ id, name }: { id: string; name: string }) {
     <ConfirmButton
       title="Apagar tema?"
       message={`O tema "${name}" será apagado. Os registros de horas continuam existindo, só deixam de contar para esse tema.`}
-      className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted hover:bg-danger-soft hover:text-danger"
+      className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 sm:min-h-0 text-sm font-semibold text-muted hover:bg-danger-soft hover:text-danger"
       onConfirm={async () => {
         await apiRequest(`/api/topics/${id}`, { method: "DELETE" });
         toast("Tema apagado");

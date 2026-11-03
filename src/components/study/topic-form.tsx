@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { ApiClientError, apiRequest } from "@/lib/api-client";
 import { CATEGORY_COLORS, hoursToInput, parseHours } from "@/lib/format";
-import { Button, ColorPicker, Field, inputClass, Modal } from "@/components/ui";
+import { Button, ColorPicker, Field, FormActions, hasFinePointer, inputClass, Modal } from "@/components/ui";
 import { useToast } from "@/components/toast";
 
 export type TopicDraft = {
@@ -92,7 +92,7 @@ function TopicForm({ categories, initial, defaultCategoryId, onDone }: { categor
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
       <Field label="Tema" htmlFor={`${id}-name`} error={errors.name}>
-        <input id={`${id}-name`} className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Next.js, Docker, Inglês B2…" autoFocus aria-invalid={Boolean(errors.name)} />
+        <input id={`${id}-name`} className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Next.js, Docker, Inglês B2…" autoFocus={hasFinePointer()} aria-invalid={Boolean(errors.name)} />
       </Field>
       <Field label="Descrição (opcional)" htmlFor={`${id}-desc`}>
         <textarea id={`${id}-desc`} rows={2} className={inputClass} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="O que você quer conseguir fazer ao final?" />
@@ -101,9 +101,9 @@ function TopicForm({ categories, initial, defaultCategoryId, onDone }: { categor
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Meta total (horas)" htmlFor={`${id}-target`} error={errors.targetHours}>
           <input id={`${id}-target`} className={inputClass} inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} placeholder="20" aria-invalid={Boolean(errors.targetHours)} />
-          <div className="flex gap-1.5">
+          <div className="grid grid-cols-4 gap-1.5">
             {TARGET_CHIPS.map((chip) => (
-              <button key={chip} type="button" onClick={() => setTarget(String(chip))} className={`rounded-lg px-2 py-1 text-xs font-semibold ${parseHours(target) === chip ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-800 hover:bg-brand-100"}`}>
+              <button key={chip} type="button" onClick={() => setTarget(String(chip))} className={`min-h-10 rounded-lg py-1 text-xs font-semibold sm:min-h-0 ${parseHours(target) === chip ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-800 hover:bg-brand-100"}`}>
                 {chip}h
               </button>
             ))}
@@ -144,14 +144,14 @@ function TopicForm({ categories, initial, defaultCategoryId, onDone }: { categor
       </Field>
 
       {errors._ && <p className="rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{errors._}</p>}
-      <div className="flex justify-end gap-2">
+      <FormActions>
         <Button variant="secondary" onClick={onDone}>
           Cancelar
         </Button>
         <Button type="submit" disabled={busy}>
           {busy ? "Salvando…" : initial ? "Salvar" : "Criar tema"}
         </Button>
-      </div>
+      </FormActions>
     </form>
   );
 }

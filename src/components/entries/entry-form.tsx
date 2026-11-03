@@ -1,11 +1,11 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 import { ApiClientError, apiRequest } from "@/lib/api-client";
 import { addDays } from "@/lib/dates";
 import type { StudyType } from "@/db/schema";
 import { hoursToInput, parseHours, STUDY_TYPE_LABELS } from "@/lib/format";
-import { Button, Field, inputClass } from "@/components/ui";
+import { Button, Field, FormActions, hasFinePointer, inputClass } from "@/components/ui";
 
 export type CategoryOption = { id: string; name: string; color: string };
 export type TopicOption = { id: string; name: string; categoryId: string | null; status: string };
@@ -40,6 +40,7 @@ export function EntryForm({
   onDone: (message: string) => void;
 }) {
   const id = useId();
+  const formRef = useRef<HTMLFormElement>(null);
   const editing = Boolean(initial?.id);
   const [date, setDate] = useState(initial?.date ?? today);
   const [activity, setActivity] = useState(initial?.activity ?? "");
@@ -91,6 +92,7 @@ export function EntryForm({
         setHours("");
         setNotes("");
         setSaved(message);
+        formRef.current?.closest("dialog")?.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         onDone(message);
       }
@@ -102,7 +104,7 @@ export function EntryForm({
   }
 
   return (
-    <form onSubmit={(event) => submit(event)} className="flex flex-col gap-4" noValidate>
+    <form ref={formRef} onSubmit={(event) => submit(event)} className="flex flex-col gap-4" noValidate>
       {saved && <p className="rounded-xl bg-brand-50 px-3 py-2 text-sm font-medium text-brand-800">✓ {saved}</p>}
 
       <Field label="O que você fez?" htmlFor={`${id}-activity`} error={errors.activity}>
@@ -115,7 +117,7 @@ export function EntryForm({
           placeholder="Ex.: Estudando React, Treino, Projeto Delivery…"
           aria-invalid={Boolean(errors.activity)}
           autoComplete="off"
-          autoFocus={!editing}
+          autoFocus={!editing && hasFinePointer()}
         />
         <datalist id={`${id}-suggestions`}>
           {suggestions.map((s) => (
@@ -134,7 +136,7 @@ export function EntryForm({
                 type="button"
                 onClick={() => setCategoryId(category.id)}
                 aria-pressed={selected}
-                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                className={`flex min-h-10 items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition sm:min-h-0 ${
                   selected ? "border-transparent text-white shadow-sm" : "border-border bg-surface text-ink hover:border-brand-300"
                 }`}
                 style={selected ? { background: category.color } : undefined}
@@ -158,13 +160,13 @@ export function EntryForm({
             placeholder="1,5"
             aria-invalid={Boolean(errors.hours)}
           />
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-6 gap-1.5">
             {HOUR_CHIPS.map((chip) => (
               <button
                 key={chip}
                 type="button"
                 onClick={() => setHours(hoursToInput(chip))}
-                className={`rounded-lg px-2 py-1 text-xs font-semibold transition ${
+                className={`min-h-10 rounded-lg py-1 text-xs font-semibold transition sm:min-h-0 ${
                   parseHours(hours) === chip ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-800 hover:bg-brand-100"
                 }`}
               >
@@ -176,7 +178,7 @@ export function EntryForm({
 
         <Field label="Data" htmlFor={`${id}-date`} error={errors.date}>
           <input id={`${id}-date`} type="date" className={inputClass} value={date} max={addDays(today, 366)} onChange={(event) => setDate(event.target.value)} />
-          <div className="flex gap-1.5">
+          <div className="grid grid-cols-2 gap-1.5">
             {[
               { label: "Hoje", value: today },
               { label: "Ontem", value: addDays(today, -1) },
@@ -185,7 +187,7 @@ export function EntryForm({
                 key={chip.label}
                 type="button"
                 onClick={() => setDate(chip.value)}
-                className={`rounded-lg px-2 py-1 text-xs font-semibold transition ${
+                className={`min-h-10 rounded-lg py-1 text-xs font-semibold transition sm:min-h-0 ${
                   date === chip.value ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-800 hover:bg-brand-100"
                 }`}
               >
@@ -217,7 +219,7 @@ export function EntryForm({
 
       {errors._ && <p className="rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{errors._}</p>}
 
-      <div className="flex flex-wrap justify-end gap-2 pt-1">
+      <FormActions>
         {!editing && (
           <Button variant="secondary" disabled={busy} onClick={(event) => submit(event as unknown as FormEvent<HTMLFormElement>, true)}>
             Salvar e registrar outro
@@ -226,7 +228,7 @@ export function EntryForm({
         <Button type="submit" disabled={busy}>
           {busy ? "Salvando…" : editing ? "Salvar alterações" : "Registrar horas"}
         </Button>
-      </div>
+      </FormActions>
     </form>
   );
 }
@@ -244,7 +246,7 @@ export function StudyTypePicker({ value, onChange, error }: { value: StudyType; 
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(option)}
-              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+              className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition sm:min-h-0 ${
                 selected ? "border-transparent bg-brand-600 text-white shadow-sm" : "border-border bg-surface text-ink hover:border-brand-300"
               }`}
             >

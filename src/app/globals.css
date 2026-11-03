@@ -47,6 +47,36 @@ body {
   background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgb(33 122 67 / 0.07) 31px 32px);
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+a,
+button,
+label,
+select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* With the on-screen keyboard open the bottom bar would only cover the page. */
+html:has(main input:not([type="checkbox"]):focus) .mobile-nav {
+  display: none;
+}
+
+/* iOS Safari gives date inputs an intrinsic width that overflows their column. */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 2.75rem;
+  }
+}
+
 dialog::backdrop {
   background: rgb(19 38 27 / 0.45);
   backdrop-filter: blur(2px);
@@ -61,6 +91,18 @@ dialog::backdrop {
 .bar-grow {
   transform-origin: left;
   animation: grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (max-width: 639.98px) {
+  dialog[open] {
+    animation: sheet-up 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

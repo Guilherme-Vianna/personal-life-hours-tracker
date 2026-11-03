@@ -6,7 +6,7 @@ import { formatDate, WEEKDAYS } from "@/lib/dates";
 import { formatHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import { routineStatus, weeklyHours } from "@/lib/routines";
 import type { RoutineRow } from "@/lib/services/routines";
-import { ConfirmButton, IconPencil, IconTrash } from "@/components/ui";
+import { ConfirmButton, dangerIconButtonClass, IconPencil, IconTrash } from "@/components/ui";
 import { useToast } from "@/components/toast";
 import { RoutineFormButton } from "./routine-form";
 
@@ -32,8 +32,9 @@ export function RoutineList({ routines, categories, topics, today }: { routines:
       {routines.map((routine) => {
         const status = STATUS[routineStatus(routine, today)];
         return (
-        <li key={routine.id} className={`flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-surface p-4 ${status ? "opacity-60" : ""}`}>
-          <span className="h-10 w-1.5 shrink-0 rounded-full" style={{ background: routine.categoryColor }} />
+        <li key={routine.id} className={`flex gap-3 rounded-2xl border border-border bg-surface p-4 sm:items-center sm:gap-4 ${status ? "opacity-60" : ""}`}>
+          <span className="w-1.5 shrink-0 self-stretch rounded-full sm:h-10 sm:self-center" style={{ background: routine.categoryColor }} />
+          <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <div className="min-w-0 flex-1">
             <p className="font-bold">
               {routine.activity} {status && <span className="ml-1 rounded bg-slate-100 px-1.5 text-[10px] font-bold text-slate-500 uppercase">{status}</span>}
@@ -42,30 +43,31 @@ export function RoutineList({ routines, categories, topics, today }: { routines:
               {routine.categoryName} · {formatHours(routine.hours)}/dia{routine.studyTopicName ? ` · 🎓 ${routine.studyTopicName}` : ""}{routine.studyType ? ` · ${STUDY_TYPE_LABELS[routine.studyType]}` : ""}{routine.notes ? ` · ${routine.notes}` : ""}
             </p>
             <p className="text-xs text-muted">{periodLabel(routine)}</p>
-            <div className="mt-2 flex gap-1">
+            <div className="mt-2 grid grid-cols-7 gap-1 sm:flex">
               {WEEKDAYS.map((day) => (
                 <span
                   key={day.value}
-                  className={`w-9 rounded-md py-0.5 text-center text-[11px] font-bold ${routine.weekdays.includes(day.value) ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-300"}`}
+                  className={`rounded-md py-0.5 text-center sm:w-9 text-[11px] font-bold ${routine.weekdays.includes(day.value) ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-300"}`}
                 >
                   {day.short}
                 </span>
               ))}
             </div>
           </div>
-          <div className="text-right">
+          <div className="flex items-center justify-between gap-4 sm:shrink-0">
+          <div className="flex items-baseline gap-1.5 sm:block sm:text-right">
             <p className="text-lg font-extrabold">{formatHours(weeklyHours(routine))}</p>
             <p className="text-xs text-muted">por semana</p>
           </div>
-          <div className="flex gap-1">
-            <RoutineFormButton variant="ghost" categories={categories} topics={topics} initial={routine} className="p-2!">
+          <div className="-mr-2 flex gap-1 sm:mr-0">
+            <RoutineFormButton variant="ghost" categories={categories} topics={topics} initial={routine} className="size-10 p-0! sm:size-9">
               <IconPencil />
               <span className="sr-only">Editar {routine.activity}</span>
             </RoutineFormButton>
             <ConfirmButton
               title="Apagar rotina?"
               message={`A rotina "${routine.activity}" será apagada e todas as horas dela saem dos painéis e registros.`}
-              className="rounded-lg p-2 text-muted hover:bg-danger-soft hover:text-danger"
+              className={dangerIconButtonClass}
               onConfirm={async () => {
                 await apiRequest(`/api/routines/${routine.id}`, { method: "DELETE" });
                 toast("Rotina apagada");
@@ -75,6 +77,8 @@ export function RoutineList({ routines, categories, topics, today }: { routines:
               <IconTrash />
               <span className="sr-only">Apagar {routine.activity}</span>
             </ConfirmButton>
+          </div>
+          </div>
           </div>
         </li>
         );

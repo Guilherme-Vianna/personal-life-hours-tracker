@@ -53,7 +53,7 @@ async function Routines() {
       {routines.length === 0 ? (
         <EmptyState icon="🔁" title="Nenhuma rotina ainda" description="Cadastre o que se repete (ex.: Trabalho CLT, 8h, seg a sex) e as horas passam a contar sozinhas nos painéis." action={newButton} />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           <RoutineList routines={routines} categories={categories} topics={topicOptions} today={today} />
           <Card className="notebook xl:sticky xl:top-6 xl:self-start">
             <CardTitle>Como funciona</CardTitle>

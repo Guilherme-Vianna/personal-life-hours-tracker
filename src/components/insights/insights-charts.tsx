@@ -1,3 +1,4 @@
+import { barTooltipPosition } from "@/components/dashboard/charts";
 import { formatDate } from "@/lib/dates";
 import { formatHours, formatPercent } from "@/lib/format";
 import type { Insights } from "@/lib/insights";
@@ -19,7 +20,7 @@ export function Delta({ value, suffix = "vs. período anterior" }: { value: numb
 
 export function KpiCard({ label, value, detail, delta, highlight = false }: { label: string; value: string; detail: string; delta: number | null; highlight?: boolean }) {
   return (
-    <div className={`flex flex-col gap-1.5 rounded-2xl border p-4 sm:p-5 ${highlight ? "chalkboard border-transparent text-chalk" : "border-border bg-surface"}`}>
+    <div className={`flex min-w-0 flex-col gap-1.5 rounded-2xl border p-4 sm:p-5 ${highlight ? "chalkboard border-transparent text-chalk" : "border-border bg-surface"}`}>
       <p className={`text-[11px] font-bold tracking-wider uppercase ${highlight ? "text-chalk/70" : "text-muted"}`}>{label}</p>
       <p className={`leading-tight font-extrabold ${highlight ? "font-hand text-4xl sm:text-5xl" : "text-2xl text-ink sm:text-3xl"}`}>{value}</p>
       <p className={`text-xs ${highlight ? "text-chalk/70" : "text-muted"}`}>{detail}</p>
@@ -39,7 +40,7 @@ const TONES = {
 export function InsightList({ insights }: { insights: Insights["insights"] }) {
   if (!insights.length) return <p className="text-sm text-muted">Registre mais alguns dias para os insights aparecerem.</p>;
   return (
-    <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {insights.map((insight) => (
         <li key={insight.title} className={`flex gap-3 rounded-2xl border p-4 ${TONES[insight.tone]}`}>
           <span className="text-2xl leading-none" aria-hidden>
@@ -80,7 +81,42 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
 export function FocusTable({ focus, days }: { focus: Insights["focus"]; days: number }) {
   const max = Math.max(...focus.map((category) => category.share), 0.01);
   return (
-    <div className="overflow-x-auto">
+    <>
+    <ul className="flex flex-col divide-y divide-border md:hidden">
+      {focus.map((category) => {
+        const trend = TREND[category.trend];
+        return (
+          <li key={category.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="size-2.5 shrink-0 rounded-full" style={{ background: category.color }} />
+                  <span className="truncate">{category.name}</span>
+                </p>
+                {category.daysSince !== null && category.daysSince > 0 && <p className="pl-4.5 text-xs text-muted">último há {category.daysSince}d</p>}
+              </div>
+              <span className={`inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-bold whitespace-nowrap ${trend.className}`}>
+                {trend.icon} {trend.label}
+                {category.change !== null && category.trend !== "idle" && ` ${category.change > 0 ? "+" : "−"}${formatPercent(Math.abs(category.change))}`}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-brand-50">
+                <div className="bar-grow h-2 rounded-full" style={{ width: `${(category.share / max) * 100}%`, background: category.color }} />
+              </div>
+              <span className="w-9 text-right text-xs text-muted tabular-nums">{formatPercent(category.share)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 text-xs text-muted tabular-nums">
+              <span>
+                <strong className="text-sm text-ink">{formatHours(category.recent)}</strong> em {days} dias · antes {formatHours(category.older)}
+              </span>
+              <Sparkline values={category.spark} color={category.color} />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+    <div className="hidden overflow-x-auto md:block">
       <table className="w-full min-w-[620px] text-sm">
         <thead>
           <tr className="text-left text-[11px] font-bold tracking-wider text-muted uppercase">
@@ -129,6 +165,7 @@ export function FocusTable({ focus, days }: { focus: Insights["focus"]; days: nu
         </tbody>
       </table>
     </div>
+    </>
   );
 }
 
@@ -137,6 +174,7 @@ export function WeeklyTrend({ weekly, slope }: { weekly: Insights["weekly"]; slo
   const step = Math.ceil(max / 4);
   const top = step * 4;
   const labelEvery = weekly.length > 26 ? 4 : weekly.length > 13 ? 2 : 1;
+  const mobileLabelEvery = Math.max(Math.ceil(weekly.length / 5), 1);
   const linePoints = weekly
     .map((week, i) => (week.average === null ? null : `${((i + 0.5) / weekly.length) * 100},${100 - (week.average / top) * 100}`))
     .filter(Boolean)
@@ -155,15 +193,19 @@ export function WeeklyTrend({ weekly, slope }: { weekly: Insights["weekly"]; slo
               <div key={i} className="border-t border-dashed border-brand-100" />
             ))}
           </div>
-          <div className="relative flex h-52 items-end gap-[2px]">
+          <div className="relative flex h-52 items-end gap-px sm:gap-[2px]">
             {weekly.map((week, i) => (
-              <div key={week.start} className="group relative flex h-full flex-1 flex-col justify-end">
+              <div key={week.start} tabIndex={0} className="group relative flex h-full min-w-0 flex-1 flex-col justify-end outline-none">
                 <div
                   className={`rounded-t-[4px] ${week.partial ? "bg-brand-200" : "bg-brand-400 group-hover:bg-brand-500"}`}
                   style={{ height: `calc((100% - 1.25rem) * ${week.hours / top})`, minHeight: week.hours ? 2 : 0 }}
                 />
-                <span className="h-5 pt-1 text-center text-[10px] whitespace-nowrap text-muted">{i % labelEvery === 0 ? formatDate(week.start, { day: "2-digit", month: "2-digit" }) : ""}</span>
-                <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-lg bg-ink px-2 py-1 text-xs whitespace-nowrap text-white group-hover:block">
+                <span className="relative h-5">
+                  <span className={`absolute top-1 left-1/2 -translate-x-1/2 text-[10px] whitespace-nowrap text-muted ${i % mobileLabelEvery ? "max-sm:hidden" : ""} ${i % labelEvery ? "sm:hidden" : ""}`}>
+                    {formatDate(week.start, { day: "2-digit", month: "2-digit" })}
+                  </span>
+                </span>
+                <span className={`pointer-events-none absolute top-0 z-10 hidden w-44 rounded-lg bg-ink px-2 py-1 text-xs text-white group-hover:block group-focus:block sm:w-auto sm:whitespace-nowrap ${barTooltipPosition(i, weekly.length)}`}>
                   Semana de {formatDate(week.start)}: <strong>{formatHours(week.hours)}</strong>
                   {week.average !== null && ` · média 4 sem.: ${formatHours(week.average)}`}
                   {week.partial && " (em andamento)"}
@@ -201,14 +243,16 @@ export function Heatmap({ weeks, max }: { weeks: Insights["heatmap"]; max: numbe
   const labels = ["Seg", "", "Qua", "", "Sex", "", "Dom"];
   return (
     <div>
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        <div className="flex flex-col gap-[3px] pt-4 text-[10px] text-muted">
+      <div className="flex gap-1.5">
+        <div className="flex shrink-0 flex-col gap-[3px] pt-4 text-[10px] text-muted">
           {labels.map((label, i) => (
             <span key={i} className="flex h-3 items-center">
               {label}
             </span>
           ))}
         </div>
+        <div className="min-w-0 flex-1 overflow-x-auto pb-1 [direction:rtl]">
+        <div className="mr-auto flex w-max gap-[3px] [direction:ltr]">
         {weeks.map((week, w) => {
           const month = week[0].date.slice(5, 7);
           const showMonth = w === 0 || weeks[w - 1][0].date.slice(5, 7) !== month;
@@ -225,6 +269,8 @@ export function Heatmap({ weeks, max }: { weeks: Insights["heatmap"]; max: numbe
             </div>
           );
         })}
+        </div>
+        </div>
       </div>
       <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-muted">
         0h

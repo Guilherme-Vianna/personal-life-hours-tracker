@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/api-client";
 import { formatDayHeading, formatTimestamp } from "@/lib/dates";
 import { formatHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import type { EntryRow } from "@/lib/services/entries";
-import { ConfirmButton, IconPencil, IconTrash } from "@/components/ui";
+import { ConfirmButton, dangerIconButtonClass, iconButtonClass, IconPencil, IconTrash } from "@/components/ui";
 import { useToast } from "@/components/toast";
 import { useEntryModal } from "./quick-add";
 
@@ -28,37 +28,47 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
           </header>
           <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
             {rows.map((entry) => (
-              <li key={entry.id} className="group flex items-center gap-3 px-4 py-3">
-                <span className="h-9 w-1.5 shrink-0 rounded-full" style={{ background: entry.categoryColor }} />
+              <li key={entry.id} className="group flex gap-3 px-4 py-3 sm:items-center">
+                <span className="w-1.5 shrink-0 self-stretch rounded-full sm:h-9 sm:self-center" style={{ background: entry.categoryColor }} />
+                <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{entry.activity}</p>
-                  <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="line-clamp-2 min-w-0 font-semibold sm:line-clamp-1">{entry.activity}</p>
+                    <span className="shrink-0 font-bold tabular-nums sm:hidden">{formatHours(entry.hours)}</span>
+                  </div>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted sm:mt-0">
                     <span>{entry.categoryName}</span>
-                    {entry.studyTopicName && <span className="rounded bg-brand-50 px-1.5 font-semibold text-brand-800">🎓 {entry.studyTopicName}</span>}
+                    {entry.studyTopicName && <span className="max-w-full truncate rounded bg-brand-50 px-1.5 font-semibold text-brand-800">🎓 {entry.studyTopicName}</span>}
                     {entry.studyType && (
                       <span className={`rounded px-1.5 font-semibold ${entry.studyType === "practice" ? "bg-pencil-soft text-amber-800" : "bg-sky-50 text-sky-800"}`}>
                         {entry.studyType === "practice" ? "🛠️" : "📖"} {STUDY_TYPE_LABELS[entry.studyType]}
                       </span>
                     )}
                     {entry.routineId && <span className="rounded bg-slate-100 px-1.5 font-semibold text-slate-600">🔁 rotina</span>}
-                    {entry.notes && <span className="truncate">· {entry.notes}</span>}
+                    {entry.notes && <span className="line-clamp-1 max-w-full">· {entry.notes}</span>}
                   </p>
-                  {entry.createdAt && <LoggedAt createdAt={entry.createdAt} updatedAt={entry.updatedAt} />}
+                  {entry.createdAt && (
+                    <div className="hidden sm:block">
+                      <LoggedAt createdAt={entry.createdAt} updatedAt={entry.updatedAt} />
+                    </div>
+                  )}
                 </div>
-                <span className="shrink-0 font-bold tabular-nums">{formatHours(entry.hours)}</span>
+                <div className="flex items-center justify-between gap-2 sm:shrink-0 sm:gap-3">
+                  <div className="min-w-0 sm:hidden">{entry.createdAt && <LoggedAt createdAt={entry.createdAt} updatedAt={entry.updatedAt} />}</div>
+                  <span className="hidden font-bold tabular-nums sm:inline">{formatHours(entry.hours)}</span>
                 {entry.routineId ? (
-                  <Link href="/rotinas" aria-label={`Editar rotina ${entry.activity}`} title="Gerado pela rotina — edite em Rotinas" className="shrink-0 rounded-lg p-2 text-muted hover:bg-brand-50 hover:text-brand-800 sm:opacity-0 sm:transition sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+                  <Link href="/rotinas" aria-label={`Editar rotina ${entry.activity}`} title="Gerado pela rotina — edite em Rotinas" className={`${iconButtonClass} -mr-2 shrink-0 pointer-fine:opacity-0 pointer-fine:transition pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 sm:mr-0`}>
                     <IconPencil />
                   </Link>
                 ) : (
-                <div className="flex shrink-0 gap-1 sm:opacity-0 sm:transition sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
-                  <button type="button" onClick={() => open(entry)} aria-label={`Editar ${entry.activity}`} className="rounded-lg p-2 text-muted hover:bg-brand-50 hover:text-brand-800">
+                <div className="-mr-2 flex shrink-0 gap-1 pointer-fine:opacity-0 pointer-fine:transition pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100 sm:mr-0">
+                  <button type="button" onClick={() => open(entry)} aria-label={`Editar ${entry.activity}`} className={iconButtonClass}>
                     <IconPencil />
                   </button>
                   <ConfirmButton
                     title="Apagar registro?"
                     message={`"${entry.activity}" (${formatHours(entry.hours)}) será removido.`}
-                    className="rounded-lg p-2 text-muted hover:bg-danger-soft hover:text-danger"
+                    className={dangerIconButtonClass}
                     onConfirm={async () => {
                       await apiRequest(`/api/entries/${entry.id}`, { method: "DELETE" });
                       toast("Registro apagado");
@@ -70,6 +80,8 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
                   </ConfirmButton>
                 </div>
                 )}
+                </div>
+                </div>
               </li>
             ))}
           </ul>

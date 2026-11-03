@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Controle do tempo livre e progresso de estudos",
 };
 
-export const viewport: Viewport = { themeColor: "#1f4a36" };
+export const viewport: Viewport = { themeColor: "#1f4a36", viewportFit: "cover", interactiveWidget: "resizes-content" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

@@ -6,7 +6,7 @@ import { ApiClientError, apiRequest } from "@/lib/api-client";
 import { todayISO, WEEKDAYS } from "@/lib/dates";
 import type { StudyType } from "@/db/schema";
 import { hoursToInput, parseHours } from "@/lib/format";
-import { Button, Field, inputClass, Modal } from "@/components/ui";
+import { Button, Field, FormActions, hasFinePointer, inputClass, Modal } from "@/components/ui";
 import { StudyTypePicker } from "@/components/entries/entry-form";
 import { Toggle } from "@/components/filters";
 import { useToast } from "@/components/toast";
@@ -109,7 +109,7 @@ function RoutineForm({ categories, topics, initial, onDone }: { categories: Opti
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
       <Field label="Atividade" htmlFor={`${id}-activity`} error={errors.activity}>
-        <input id={`${id}-activity`} className={inputClass} value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Ex.: Trabalho CLT, Treino, Inglês" autoFocus />
+        <input id={`${id}-activity`} className={inputClass} value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Ex.: Trabalho CLT, Treino, Inglês" autoFocus={hasFinePointer()} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Categoria" htmlFor={`${id}-category`} error={errors.categoryId}>
@@ -127,14 +127,14 @@ function RoutineForm({ categories, topics, initial, onDone }: { categories: Opti
         </Field>
       </div>
       <Field label="Dias da semana" error={errors.weekdays}>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="grid grid-cols-7 gap-1 sm:flex sm:flex-wrap sm:gap-1.5">
           {WEEKDAYS.map((day) => (
             <button
               key={day.value}
               type="button"
               aria-pressed={weekdays.includes(day.value)}
               onClick={() => toggleDay(day.value)}
-              className={`w-12 rounded-xl py-2 text-sm font-bold transition ${weekdays.includes(day.value) ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-800 hover:bg-brand-100"}`}
+              className={`min-h-11 rounded-xl py-2 text-xs font-bold transition sm:min-h-0 sm:w-12 sm:text-sm ${weekdays.includes(day.value) ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-800 hover:bg-brand-100"}`}
             >
               {day.short}
             </button>
@@ -175,14 +175,14 @@ function RoutineForm({ categories, topics, initial, onDone }: { categories: Opti
       </Field>
       <Toggle checked={active} onChange={setActive} label="Rotina ativa (conta nos painéis)" />
       {errors._ && <p className="rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{errors._}</p>}
-      <div className="flex justify-end gap-2">
+      <FormActions>
         <Button variant="secondary" onClick={onDone}>
           Cancelar
         </Button>
         <Button type="submit" disabled={busy}>
           {busy ? "Salvando…" : "Salvar"}
         </Button>
-      </div>
+      </FormActions>
     </form>
   );
 }

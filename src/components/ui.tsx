@@ -21,15 +21,15 @@ export function Button({
     <button
       type="button"
       {...props}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-xl font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed ${
-        size === "sm" ? "px-3 py-1.5 text-sm" : "px-4 py-2.5 text-sm"
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl leading-tight font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-[0.98] disabled:cursor-not-allowed ${
+        size === "sm" ? "min-h-10 px-3 py-1.5 text-sm sm:min-h-0" : "min-h-11 px-4 py-2.5 text-sm sm:min-h-0"
       } ${buttonStyles[variant]} ${className}`}
     />
   );
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-border bg-surface p-5 shadow-[0_1px_2px_rgb(19_38_27/0.04)] ${className}`}>{children}</section>;
+  return <section className={`min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-5 shadow-[0_1px_2px_rgb(19_38_27/0.04)] ${className}`}>{children}</section>;
 }
 
 export function CardTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
@@ -41,8 +41,17 @@ export function CardTitle({ children, action }: { children: ReactNode; action?: 
   );
 }
 
+// 16px on phones: iOS zooms the whole page when a focused field is smaller than that.
 export const inputClass =
-  "w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 aria-invalid:border-danger";
+  "min-h-11 w-full min-w-0 rounded-xl border border-border bg-surface px-3 py-2.5 text-base text-ink sm:min-h-0 sm:pointer-fine:text-sm placeholder:text-muted/70 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 aria-invalid:border-danger";
+
+export const iconButtonClass = "inline-flex size-10 items-center justify-center rounded-lg text-muted hover:bg-brand-50 hover:text-brand-800 sm:size-9";
+export const dangerIconButtonClass = "inline-flex size-10 items-center justify-center rounded-lg text-muted hover:bg-danger-soft hover:text-danger sm:size-9";
+
+// Focusing a field on a touch screen pops the keyboard over the form before the user chose to type.
+export function hasFinePointer() {
+  return typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
+}
 
 export function Field({ label, error, hint, children, htmlFor }: { label: string; error?: string; hint?: string; children: ReactNode; htmlFor?: string }) {
   return (
@@ -84,7 +93,7 @@ export function Modal({ open, onClose, title, children, wide = false }: { open: 
     if (open && !dialog.open) {
       dialog.showModal();
       // showModal focuses the close button; prefer the first form field like autoFocus would.
-      dialog.querySelector<HTMLElement>("input:not([type=hidden]), textarea, select")?.focus();
+      if (hasFinePointer()) dialog.querySelector<HTMLElement>("input:not([type=hidden]), textarea, select")?.focus();
     }
     if (!open && dialog.open) dialog.close();
   }, [open]);
@@ -93,22 +102,31 @@ export function Modal({ open, onClose, title, children, wide = false }: { open: 
       ref={ref}
       onClose={onClose}
       onClick={(event) => event.target === ref.current && onClose()}
-      className={`m-auto w-[calc(100%-2rem)] ${wide ? "max-w-2xl" : "max-w-lg"} rounded-3xl border border-border bg-surface p-0 text-ink shadow-2xl`}
+      className={`mx-0 mt-auto mb-0 max-h-[92dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-3xl border border-b-0 border-border bg-surface p-0 text-ink shadow-2xl sm:m-auto sm:w-[calc(100%-2rem)] sm:rounded-3xl sm:border-b ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"}`}
     >
       {open && (
-        <div className="p-6">
-          <div className="mb-5 flex items-start justify-between gap-4">
+        <>
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-4 bg-surface py-3 pr-3 pl-5 sm:px-6 sm:pt-6 sm:pb-5">
             <h2 className="text-lg font-bold">{title}</h2>
-            <button type="button" onClick={onClose} aria-label="Fechar" className="rounded-lg p-1 text-muted hover:bg-brand-50 hover:text-ink">
+            <button type="button" onClick={onClose} aria-label="Fechar" className="-my-1 inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-brand-50 hover:text-ink sm:-mr-2 sm:size-8">
               <svg viewBox="0 0 20 20" className="size-5" fill="currentColor" aria-hidden>
                 <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
               </svg>
             </button>
           </div>
-          {children}
-        </div>
+          <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-6">{children}</div>
+        </>
       )}
     </dialog>
+  );
+}
+
+// Pinned to the bottom of the sheet on phones so saving never requires scrolling past the whole form.
+export function FormActions({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`sticky bottom-0 z-10 -mx-5 -mb-[calc(1.25rem+env(safe-area-inset-bottom))] flex gap-2 border-t border-border bg-surface px-5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] *:flex-1 sm:static sm:mx-0 sm:mb-0 sm:justify-end sm:border-0 sm:p-0 sm:*:flex-none ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -138,7 +156,7 @@ export function ConfirmButton({
       <Modal open={open} onClose={() => setOpen(false)} title={title}>
         <p className="text-sm text-muted">{message}</p>
         {error && <p className="mt-3 rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>}
-        <div className="mt-6 flex justify-end gap-2">
+        <FormActions className="mt-6">
           <Button variant="secondary" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
@@ -160,7 +178,7 @@ export function ConfirmButton({
           >
             {busy ? "Apagando…" : confirmLabel}
           </Button>
-        </div>
+        </FormActions>
       </Modal>
     </>
   );
@@ -190,7 +208,7 @@ export function ColorPicker({ value, onChange, colors }: { value: string; onChan
           aria-checked={value === color}
           aria-label={color}
           onClick={() => onChange(color)}
-          className={`size-8 rounded-full ring-offset-2 transition ${value === color ? "ring-2 ring-ink" : "hover:scale-110"}`}
+          className={`size-10 rounded-full ring-offset-2 sm:size-8 transition ${value === color ? "ring-2 ring-ink" : "hover:scale-110"}`}
           style={{ background: color }}
         />
       ))}

@@ -77,7 +77,7 @@ async function Insights({ searchParams }: { searchParams: PageProps<"/analises">
             <WeeklyTrend weekly={stats.weekly} slope={stats.weeklySlope} />
           </Card>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <Card>
               <CardTitle>Mapa de atividade</CardTitle>
               <Heatmap weeks={stats.heatmap} max={stats.heatmapMax} />
@@ -91,7 +91,7 @@ async function Insights({ searchParams }: { searchParams: PageProps<"/analises">
             </Card>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <Card>
               <CardTitle>Atividades que mais ocupam seu tempo</CardTitle>
               <TopActivities items={stats.topActivities} total={kpis.total.value} />

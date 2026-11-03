@@ -37,20 +37,20 @@ async function Topic({ params }: { params: PageProps<"/estudos/[id]">["params"] 
 
   return (
     <div className="flex flex-col gap-6">
-      <Link href="/estudos" className="text-sm font-semibold text-brand-700 hover:underline">
+      <Link href="/estudos" className="-my-2 self-start py-2 text-sm font-semibold text-brand-700 hover:underline">
         ← Estudos
       </Link>
 
-      <div className="chalkboard rounded-3xl p-6 text-chalk sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="chalkboard rounded-3xl p-5 text-chalk sm:p-8">
+        <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-hand text-4xl font-bold sm:text-5xl">{topic.name}</h1>
+              <h1 className="min-w-0 font-hand text-4xl leading-none font-bold break-words sm:text-5xl">{topic.name}</h1>
               {topic.status === "paused" ? <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">Pausado</span> : <PaceBadge pace={progress.pace} />}
             </div>
             {topic.description && <p className="mt-2 max-w-2xl text-sm text-chalk/80">{topic.description}</p>}
           </div>
-          <span className="font-hand text-6xl leading-none font-bold text-pencil">{Math.floor(progress.percent)}%</span>
+          <span className="shrink-0 font-hand text-5xl leading-none font-bold text-pencil sm:text-6xl">{Math.floor(progress.percent)}%</span>
         </div>
         <div className="mt-6">
           <ProgressBar value={progress.percent} color="var(--color-pencil)" size="lg" label={`Progresso de ${topic.name}`} />
@@ -61,8 +61,8 @@ async function Topic({ params }: { params: PageProps<"/estudos/[id]">["params"] 
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {topic.status !== "completed" && <QuickAddButton preset={{ studyTopicId: topic.id, categoryId: topic.categoryId ?? undefined, activity: `Estudando ${topic.name}` }}>+ Registrar sessão</QuickAddButton>}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        {topic.status !== "completed" && <QuickAddButton className="col-span-2" preset={{ studyTopicId: topic.id, categoryId: topic.categoryId ?? undefined, activity: `Estudando ${topic.name}` }}>+ Registrar sessão</QuickAddButton>}
         <TopicFormButton variant="secondary" categories={categories} initial={topic}>
           Editar tema
         </TopicFormButton>
@@ -112,9 +112,9 @@ async function Topic({ params }: { params: PageProps<"/estudos/[id]">["params"] 
 
 function Stat({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4">
+    <div className="min-w-0 rounded-2xl border border-border bg-surface p-4">
       <dt className="text-[11px] font-bold tracking-wider text-muted uppercase">{label}</dt>
-      <dd className="mt-1 text-xl font-extrabold">{value}</dd>
+      <dd className="mt-1 text-lg leading-tight font-extrabold sm:text-xl">{value}</dd>
       <dd className="text-xs text-muted">{detail}</dd>
     </div>
   );
@@ -131,7 +131,7 @@ function StudyTypeSplit({ sessions }: { sessions: EntryRow[] }) {
       <div className="flex h-4 overflow-hidden rounded-full bg-sky-200" role="img" aria-label={`${Math.round(100 - practicePercent)}% teórico, ${Math.round(practicePercent)}% prático`}>
         <div className="bg-pencil" style={{ width: `${practicePercent}%`, marginLeft: `${100 - practicePercent}%` }} />
       </div>
-      <div className="flex justify-between text-sm">
+      <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-sm">
         <span>
           📖 {STUDY_TYPE_LABELS.theory}: <strong>{formatHours(theory)}</strong> ({Math.round(100 - practicePercent)}%)
         </span>
@@ -151,17 +151,26 @@ function WeeklyBars({ sessions, today, goal }: { sessions: EntryRow[]; today: st
   });
   const max = Math.max(...weeks.map((week) => week.hours), goal ?? 0, 1);
   return (
-    <div className="relative flex h-44 items-end gap-2">
+    <div className="relative flex h-44 items-end gap-1 sm:gap-2">
       {goal ? (
         <div className="pointer-events-none absolute inset-x-0 border-t-2 border-dashed border-pencil" style={{ bottom: `calc(1.25rem + (100% - 2.5rem) * ${goal / max})` }}>
           <span className="absolute -top-5 right-0 rounded bg-pencil-soft px-1.5 text-[10px] font-bold text-amber-800">meta {formatHours(goal)}</span>
         </div>
       ) : null}
-      {weeks.map((week) => (
-        <div key={week.start} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-          <span className="h-4 text-[10px] font-semibold text-muted">{week.hours ? formatHours(week.hours) : ""}</span>
+      {weeks.map((week, index) => (
+        <div key={week.start} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+          <span className="h-4 text-[9px] font-semibold whitespace-nowrap text-muted sm:text-[10px]">
+            {week.hours ? (
+              <>
+                {formatHours(week.hours).slice(0, -1)}
+                <span className="hidden sm:inline">h</span>
+              </>
+            ) : (
+              ""
+            )}
+          </span>
           <div className={`w-full rounded-t-md ${goal && week.hours >= goal ? "bg-brand-600" : "bg-brand-300"}`} style={{ height: `calc((100% - 2.5rem) * ${week.hours / max})` }} />
-          <span className="h-4 text-[10px] text-muted">{formatDate(week.start, { day: "2-digit", month: "2-digit" })}</span>
+          <span className={`h-4 text-[10px] whitespace-nowrap text-muted ${(weeks.length - 1 - index) % 3 ? "max-sm:invisible" : ""}`}>{formatDate(week.start, { day: "2-digit", month: "2-digit" })}</span>
         </div>
       ))}
     </div>

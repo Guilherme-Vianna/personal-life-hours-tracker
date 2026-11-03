@@ -62,7 +62,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/">["searc
             <SeriesChart series={stats.series} kind={stats.seriesKind} />
           </Card>
 
-          <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <Card>
               <CardTitle>Por dia da semana</CardTitle>
               <WeekdayChart data={stats.byWeekday} />
@@ -78,12 +78,12 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/">["searc
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold">Estudos em andamento</h2>
-          <Link href="/estudos" className="text-sm font-semibold text-brand-700 hover:underline">
+          <Link href="/estudos" className="-my-2 py-2 text-sm font-semibold text-brand-700 hover:underline">
             Ver todos →
           </Link>
         </div>
         {activeTopics.length ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {activeTopics.slice(0, 6).map((topic) => (
               <TopicCard key={topic.id} topic={topic} today={today} compact />
             ))}

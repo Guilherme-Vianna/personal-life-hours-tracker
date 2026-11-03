@@ -8,18 +8,18 @@ import type { TopicWithProgress } from "@/lib/services/topics";
 
 export function PaceBadge({ pace }: { pace: TopicWithProgress["progress"]["pace"] }) {
   const { label, tone } = PACE_LABELS[pace];
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${tone}`}>{label}</span>;
+  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${tone}`}>{label}</span>;
 }
 
 export function TopicCard({ topic, today, compact = false }: { topic: TopicWithProgress; today: string; compact?: boolean }) {
   const { progress } = topic;
   return (
-    <article className={`flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 ${topic.status === "paused" ? "opacity-70" : ""}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <Link href={`/estudos/${topic.id}`} className="flex items-center gap-2 text-lg font-bold hover:text-brand-700">
+    <article className={`flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-surface p-4 sm:p-5 ${topic.status === "paused" ? "opacity-70" : ""}`}>
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+        <div className="max-w-full min-w-0">
+          <Link href={`/estudos/${topic.id}`} className="-my-1.5 flex items-center gap-2 py-1.5 text-lg leading-snug font-bold hover:text-brand-700">
             <span className="size-3 shrink-0 rounded-full" style={{ background: topic.color }} />
-            <span className="truncate">{topic.name}</span>
+            <span className="line-clamp-2 min-w-0">{topic.name}</span>
           </Link>
           {!compact && topic.description && <p className="mt-0.5 line-clamp-2 text-sm text-muted">{topic.description}</p>}
         </div>

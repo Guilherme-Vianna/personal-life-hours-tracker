@@ -65,7 +65,7 @@ async function Study() {
           )}
 
           {active.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {active.map((topic) => (
                 <TopicCard key={topic.id} topic={topic} today={today} />
               ))}
@@ -75,7 +75,7 @@ async function Study() {
           {others.length > 0 && (
             <section>
               <h2 className="mb-3 text-lg font-bold">Pausados e concluídos</h2>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {others.map((topic) => (
                   <TopicCard key={topic.id} topic={topic} today={today} />
                 ))}

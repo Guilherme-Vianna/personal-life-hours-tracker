@@ -1,9 +1,16 @@
 import type { DashboardStats } from "@/lib/services/stats";
 import { formatHours, formatPercent } from "@/lib/format";
 
+// Keeps a bar's tooltip inside the chart: the outer bars would otherwise be clipped on narrow screens.
+export function barTooltipPosition(index: number, length: number) {
+  if (index < length / 3) return "left-0";
+  if (index >= (length * 2) / 3) return "right-0";
+  return "left-1/2 -translate-x-1/2";
+}
+
 export function StatCard({ label, value, detail, highlight = false }: { label: string; value: string; detail: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-2xl border p-4 sm:p-5 ${highlight ? "chalkboard border-transparent text-chalk" : "border-border bg-surface"}`}>
+    <div className={`min-w-0 rounded-2xl border p-4 sm:p-5 ${highlight ? "chalkboard border-transparent text-chalk" : "border-border bg-surface"}`}>
       <p className={`text-[11px] font-bold tracking-wider uppercase ${highlight ? "text-chalk/70" : "text-muted"}`}>{label}</p>
       <p
         className={`mt-1.5 line-clamp-2 leading-tight font-extrabold break-words ${
@@ -63,7 +70,8 @@ export function CategoryTable({ data }: { data: DashboardStats["byCategory"] }) 
               {category.isFixed && <span className="rounded bg-slate-100 px-1.5 text-[10px] font-bold text-slate-500 uppercase">fixo</span>}
             </span>
             <span className="shrink-0 text-muted tabular-nums">
-              <strong className="text-ink">{formatHours(category.hours)}</strong> · {formatPercent(category.percent)} · {category.count} reg.
+              <strong className="text-ink">{formatHours(category.hours)}</strong> · {formatPercent(category.percent)}
+              <span className="hidden sm:inline"> · {category.count} reg.</span>
             </span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-brand-50">
@@ -87,22 +95,23 @@ export function SeriesChart({ series, kind }: { series: DashboardStats["series"]
           <span key={i}>{step * i}h</span>
         ))}
       </div>
-      <div className="min-w-0 flex-1 overflow-x-auto">
-        <div className="relative flex h-48 items-end gap-[3px]" style={{ minWidth: series.length * 10 }}>
+      {/* rtl makes the scroller start at the end: the most recent days are what matters on a phone. */}
+      <div className="min-w-0 flex-1 overflow-x-auto [direction:rtl]">
+        <div className="relative flex h-48 items-end gap-[3px] [direction:ltr]" style={{ minWidth: series.length * 10 }}>
           <div className="pointer-events-none absolute inset-x-0 top-0 bottom-5 flex flex-col justify-between">
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="border-t border-dashed border-brand-100" />
             ))}
           </div>
           {series.map((point, index) => (
-            <div key={point.key} className="group relative flex h-full flex-1 flex-col justify-end">
+            <div key={point.key} tabIndex={0} className="group relative flex h-full min-w-0 flex-1 flex-col justify-end outline-none">
               <div className="flex flex-col-reverse overflow-hidden rounded-t-md" style={{ height: `calc((100% - 1.25rem) * ${point.hours / top})` }}>
                 {point.segments.map((segment) => (
                   <div key={segment.color} style={{ height: `${(segment.hours / point.hours) * 100}%`, background: segment.color }} />
                 ))}
               </div>
               <span className="h-5 pt-1 text-center text-[10px] text-muted">{index % labelEvery === 0 ? (kind === "daily" ? point.label.slice(0, 2) : point.label.slice(0, 3)) : ""}</span>
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-lg bg-ink px-2 py-1 text-xs whitespace-nowrap text-white group-hover:block">
+              <span className={`pointer-events-none absolute top-0 z-10 hidden rounded-lg bg-ink px-2 py-1 text-xs whitespace-nowrap text-white group-hover:block group-focus:block ${barTooltipPosition(index, series.length)}`}>
                 {point.label}: {formatHours(point.hours)}
               </span>
             </div>
@@ -116,10 +125,10 @@ export function SeriesChart({ series, kind }: { series: DashboardStats["series"]
 export function WeekdayChart({ data }: { data: { key: string; label: string; hours: number }[] }) {
   const max = Math.max(...data.map((day) => day.hours), 0.01);
   return (
-    <div className="flex h-40 items-end gap-2">
+    <div className="flex h-40 items-end gap-1 sm:gap-2">
       {data.map((day) => (
-        <div key={day.key} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-          <span className="text-[11px] font-semibold text-muted tabular-nums">{day.hours ? formatHours(day.hours) : ""}</span>
+        <div key={day.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+          <span className="text-[10px] font-semibold whitespace-nowrap text-muted tabular-nums sm:text-[11px]">{day.hours ? formatHours(day.hours) : ""}</span>
           <div
             className={`w-full rounded-t-lg ${day.key === "0" || day.key === "6" ? "bg-pencil" : "bg-brand-500"}`}
             style={{ height: `calc((100% - 2.5rem) * ${day.hours / max})`, minHeight: day.hours ? 4 : 0 }}
