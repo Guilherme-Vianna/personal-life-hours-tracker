@@ -50,6 +50,11 @@ export const topicInput = z
     message: "O prazo precisa ser depois do início",
   });
 
+export const archiveTopicInput = z.object({
+  reason: z.string().trim().min(3, "Conte em poucas palavras por que está arquivando").max(500),
+  endRoutines: z.boolean().default(true),
+});
+
 export const routineInput = z
   .object({
     activity: z.string().trim().min(1, "Informe a atividade").max(120),

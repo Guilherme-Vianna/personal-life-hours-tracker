@@ -1,28 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
+import { CountUp } from "@/components/count-up";
 import { connection } from "next/server";
-import { Suspense } from "react";
 import { EntryList } from "@/components/entries/entry-list";
 import { QuickAddButton } from "@/components/entries/quick-add";
-import { PageSkeleton } from "@/components/skeleton";
+import { PageSuspense } from "@/components/page-suspense";
+import { ArchiveTopicButton, IconArchive } from "@/components/study/archive-topic-button";
 import { DeleteTopicButton } from "@/components/study/delete-topic-button";
-import { PaceBadge } from "@/components/study/topic-card";
+import { TopicStatusBadge } from "@/components/study/topic-card";
 import { TopicFormButton } from "@/components/study/topic-form";
 import { Card, CardTitle, EmptyState, ProgressBar } from "@/components/ui";
 import { addDays, formatDate, startOfWeek, todayISO } from "@/lib/dates";
 import { formatHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import { listCategories } from "@/lib/services/categories";
 import { listEntries, type EntryRow } from "@/lib/services/entries";
+import { listRoutines } from "@/lib/services/routines";
 import { getTopic } from "@/lib/services/topics";
 
 export const metadata: Metadata = { title: "Tema de estudo" };
 
 export default function TopicPage(props: PageProps<"/estudos/[id]">) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <PageSuspense>
       <Topic params={props.params} />
-    </Suspense>
+    </PageSuspense>
   );
 }
 
@@ -31,26 +34,32 @@ async function Topic({ params }: { params: PageProps<"/estudos/[id]">["params"] 
   await connection();
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const today = todayISO();
-  const [topic, sessions, categories] = await Promise.all([getTopic(id, today), listEntries({ studyTopicId: id }), listCategories()]);
+  const [topic, sessions, categories, routines] = await Promise.all([getTopic(id, today), listEntries({ studyTopicId: id }), listCategories(), listRoutines()]);
   if (!topic) notFound();
+  const linkedRoutines = routines.filter((routine) => routine.studyTopicId === id && routine.active && (!routine.endDate || routine.endDate > today)).length;
   const { progress } = topic;
 
   return (
     <div className="flex flex-col gap-6">
-      <Link href="/estudos" className="-my-2 self-start py-2 text-sm font-semibold text-brand-700 hover:underline">
-        ← Estudos
+      <Link href="/estudos" className="group -my-2 self-start py-2 text-sm font-semibold text-brand-700">
+        <span className="inline-block transition-transform group-hover:-translate-x-1">←</span> <span className="group-hover:underline">Estudos</span>
       </Link>
 
-      <div className="chalkboard rounded-3xl p-5 text-chalk sm:p-8">
+      <div className={`chalkboard relative overflow-hidden rounded-3xl p-5 text-chalk shadow-lg sm:p-8 ${topic.archivedAt ? "grayscale-[0.6]" : ""}`}>
+        <span className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full opacity-25 blur-2xl" style={{ background: topic.color }} aria-hidden />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="min-w-0 font-hand text-4xl leading-none font-bold break-words sm:text-5xl">{topic.name}</h1>
-              {topic.status === "paused" ? <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">Pausado</span> : <PaceBadge pace={progress.pace} />}
+              <ViewTransition name={`topic-name-${topic.id}`} share="morph" default="none">
+                <h1 className="min-w-0 font-hand text-4xl leading-none font-bold break-words sm:text-5xl">{topic.name}</h1>
+              </ViewTransition>
+              <TopicStatusBadge topic={topic} />
             </div>
             {topic.description && <p className="mt-2 max-w-2xl text-sm text-chalk/80">{topic.description}</p>}
           </div>
-          <span className="shrink-0 font-hand text-5xl leading-none font-bold text-pencil sm:text-6xl">{Math.floor(progress.percent)}%</span>
+          <span className="shrink-0 font-hand text-5xl leading-none font-bold text-pencil sm:text-6xl">
+            <CountUp value={progress.percent} suffix="%" />
+          </span>
         </div>
         <div className="mt-6">
           <ProgressBar value={progress.percent} color="var(--color-pencil)" size="lg" label={`Progresso de ${topic.name}`} />
@@ -61,15 +70,29 @@ async function Topic({ params }: { params: PageProps<"/estudos/[id]">["params"] 
         </div>
       </div>
 
+      {topic.archivedAt && (
+        <div className="flex gap-3 rounded-2xl border border-dashed border-stone-300 bg-stone-50 p-4 text-stone-800">
+          <span className="mt-0.5 text-stone-500">
+            <IconArchive />
+          </span>
+          <div className="min-w-0 text-sm">
+            <p className="font-bold">Arquivado em {formatDate(todayISO(new Date(topic.archivedAt)), { day: "2-digit", month: "long", year: "numeric" })}</p>
+            {topic.archiveReason && <p className="mt-0.5 break-words">“{topic.archiveReason}”</p>}
+            <p className="mt-1 text-xs text-stone-600">As horas continuam no histórico e nos totais. Desarquive para voltar a registrar sessões.</p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        {topic.status !== "completed" && <QuickAddButton className="col-span-2" preset={{ studyTopicId: topic.id, categoryId: topic.categoryId ?? undefined, activity: `Estudando ${topic.name}` }}>+ Registrar sessão</QuickAddButton>}
+        {topic.status !== "completed" && !topic.archivedAt && <QuickAddButton className="col-span-2" preset={{ studyTopicId: topic.id, categoryId: topic.categoryId ?? undefined, activity: `Estudando ${topic.name}` }}>+ Registrar sessão</QuickAddButton>}
         <TopicFormButton variant="secondary" categories={categories} initial={topic}>
           Editar tema
         </TopicFormButton>
+        <ArchiveTopicButton id={topic.id} name={topic.name} archived={Boolean(topic.archivedAt)} linkedRoutines={linkedRoutines} />
         <DeleteTopicButton id={topic.id} name={topic.name} />
       </div>
 
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <dl className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Média semanal" value={formatHours(progress.weeklyAverage)} detail="últimas 4 semanas" />
         <Stat
           label="Previsão de término"
@@ -112,7 +135,7 @@ async function Topic({ params }: { params: PageProps<"/estudos/[id]">["params"] 
 
 function Stat({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-border bg-surface p-4">
+    <div className="lift min-w-0 rounded-2xl border border-border bg-surface p-4 shadow-card">
       <dt className="text-[11px] font-bold tracking-wider text-muted uppercase">{label}</dt>
       <dd className="mt-1 text-lg leading-tight font-extrabold sm:text-xl">{value}</dd>
       <dd className="text-xs text-muted">{detail}</dd>
@@ -169,7 +192,7 @@ function WeeklyBars({ sessions, today, goal }: { sessions: EntryRow[]; today: st
               ""
             )}
           </span>
-          <div className={`w-full rounded-t-md ${goal && week.hours >= goal ? "bg-brand-600" : "bg-brand-300"}`} style={{ height: `calc((100% - 2.5rem) * ${week.hours / max})` }} />
+          <div className={`bar-rise w-full rounded-t-md ${goal && week.hours >= goal ? "bg-brand-600" : "bg-brand-300"}`} style={{ height: `calc((100% - 2.5rem) * ${week.hours / max})`, animationDelay: `${index * 35}ms` }} />
           <span className={`h-4 text-[10px] whitespace-nowrap text-muted ${(weeks.length - 1 - index) % 3 ? "max-sm:invisible" : ""}`}>{formatDate(week.start, { day: "2-digit", month: "2-digit" })}</span>
         </div>
       ))}

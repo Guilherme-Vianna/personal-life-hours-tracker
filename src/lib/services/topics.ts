@@ -1,10 +1,10 @@
 import "server-only";
-import { asc, eq, isNotNull } from "drizzle-orm";
+import { and, asc, eq, gt, isNotNull, isNull, lte, or } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, studyTopics, type StudyTopic } from "@/db/schema";
+import { entries, routines, studyTopics, type StudyTopic } from "@/db/schema";
 import { notFound } from "@/lib/api-errors";
 import { topicProgress } from "@/lib/progress";
-import { topicInput } from "@/lib/validation";
+import { archiveTopicInput, topicInput } from "@/lib/validation";
 import { listRoutineEntries } from "./routines";
 
 function withProgress(topic: StudyTopic, sessions: { date: string; hours: number }[], today: string) {
@@ -12,6 +12,7 @@ function withProgress(topic: StudyTopic, sessions: { date: string; hours: number
     ...topic,
     createdAt: topic.createdAt.toISOString(),
     updatedAt: topic.updatedAt.toISOString(),
+    archivedAt: topic.archivedAt?.toISOString() ?? null,
     progress: topicProgress({ ...topic, createdAt: topic.createdAt.toISOString(), sessions }, today),
   };
 }
@@ -30,9 +31,10 @@ export async function listTopics(today: string) {
     byTopic.set(session.studyTopicId, list);
   }
   const order = { active: 0, paused: 1, completed: 2 };
+  const rank = (topic: StudyTopic) => (topic.archivedAt ? 3 : order[topic.status]);
   return topics
-    .map((topic) => withProgress(topic, byTopic.get(topic.id) ?? [], today))
-    .sort((a, b) => order[a.status] - order[b.status]);
+    .sort((a, b) => rank(a) - rank(b))
+    .map((topic) => withProgress(topic, byTopic.get(topic.id) ?? [], today));
 }
 
 export type TopicWithProgress = Awaited<ReturnType<typeof listTopics>>[number];
@@ -63,4 +65,32 @@ export async function updateTopic(id: string, body: unknown) {
 export async function deleteTopic(id: string) {
   const deleted = await db.delete(studyTopics).where(eq(studyTopics.id, id)).returning({ id: studyTopics.id });
   if (!deleted.length) throw notFound("Tema");
+}
+
+// Archiving keeps every hour already logged; only linked routines stop producing new hours from today on.
+export async function archiveTopic(id: string, body: unknown, today: string) {
+  const { reason, endRoutines } = archiveTopicInput.parse(body);
+  const [archived] = await db
+    .update(studyTopics)
+    .set({ archivedAt: new Date(), archiveReason: reason })
+    .where(eq(studyTopics.id, id))
+    .returning();
+  if (!archived) throw notFound("Tema");
+  if (endRoutines) {
+    await db
+      .update(routines)
+      .set({ endDate: today })
+      .where(and(eq(routines.studyTopicId, id), lte(routines.startDate, today), or(isNull(routines.endDate), gt(routines.endDate, today))));
+    await db
+      .update(routines)
+      .set({ active: false })
+      .where(and(eq(routines.studyTopicId, id), gt(routines.startDate, today)));
+  }
+  return archived;
+}
+
+export async function unarchiveTopic(id: string) {
+  const [restored] = await db.update(studyTopics).set({ archivedAt: null, archiveReason: null }).where(eq(studyTopics.id, id)).returning();
+  if (!restored) throw notFound("Tema");
+  return restored;
 }

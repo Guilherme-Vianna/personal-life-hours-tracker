@@ -8,7 +8,7 @@ import { hoursToInput, parseHours, STUDY_TYPE_LABELS } from "@/lib/format";
 import { Button, Field, FormActions, hasFinePointer, inputClass } from "@/components/ui";
 
 export type CategoryOption = { id: string; name: string; color: string };
-export type TopicOption = { id: string; name: string; categoryId: string | null; status: string };
+export type TopicOption = { id: string; name: string; categoryId: string | null; status: string; archivedAt: string | null };
 export type SuggestionOption = { activity: string; categoryId: string; studyTopicId: string | null; studyType: StudyType | null };
 
 export type EntryDraft = {
@@ -53,7 +53,7 @@ export function EntryForm({
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
 
-  const activeTopics = topics.filter((topic) => topic.status !== "completed" || topic.id === studyTopicId);
+  const activeTopics = topics.filter((topic) => (topic.status !== "completed" && !topic.archivedAt) || topic.id === studyTopicId);
   const isStudy = Boolean(studyTopicId) || topics.some((topic) => topic.categoryId && topic.categoryId === categoryId);
 
   function pickActivity(value: string) {

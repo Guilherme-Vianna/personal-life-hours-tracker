@@ -41,7 +41,7 @@ function StaticNavLinks({ pathname }: { pathname: string | null }) {
         key={item.href}
         href={item.href}
         aria-current={active ? "page" : undefined}
-        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-chalk text-board-dark shadow" : "text-chalk/80 hover:bg-white/10 hover:text-chalk"}`}
+        className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition duration-200 ${active ? "bg-chalk text-board-dark shadow-md" : "text-chalk/80 hover:translate-x-1 hover:bg-white/10 hover:text-chalk"}`}
       >
         <NavIcon d={item.icon} />
         {item.label}
@@ -59,8 +59,11 @@ const TAB_CLASS = "flex min-h-14 min-w-0 flex-col items-center justify-center ga
 function MobileTab({ item, pathname }: { item: { href: string; label: string; icon: string }; pathname: string | null }) {
   const active = isActive(item.href, pathname);
   return (
-    <Link href={item.href} aria-current={active ? "page" : undefined} className={`${TAB_CLASS} ${active ? "text-brand-700" : "text-muted"}`}>
-      <NavIcon d={item.icon} />
+    <Link href={item.href} aria-current={active ? "page" : undefined} className={`${TAB_CLASS} relative transition-colors ${active ? "text-brand-700" : "text-muted"}`}>
+      <span className={`absolute top-0 h-0.5 rounded-full bg-brand-600 transition-all duration-300 ease-(--ease-out-soft) ${active ? "w-8 opacity-100" : "w-0 opacity-0"}`} aria-hidden />
+      <span className={`rounded-full px-3 py-0.5 transition-colors duration-200 ${active ? "bg-brand-50" : ""}`}>
+        <NavIcon d={item.icon} />
+      </span>
       {item.label}
     </Link>
   );

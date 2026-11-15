@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { Suspense } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { CategoryDonut, CategoryTable, SeriesChart, StatCard, WeekdayChart } from "@/components/dashboard/charts";
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { QuickAddButton } from "@/components/entries/quick-add";
-import { PageSkeleton } from "@/components/skeleton";
+import { PageSuspense } from "@/components/page-suspense";
 import { TopicCard } from "@/components/study/topic-card";
 import { Card, CardTitle, EmptyState } from "@/components/ui";
 import { formatDate, isPeriod, PERIODS, todayISO } from "@/lib/dates";
@@ -17,9 +16,9 @@ export default function DashboardPage(props: PageProps<"/">) {
   return (
     <>
       <PageHeader title="Painel" subtitle="Para onde está indo o seu tempo livre" action={<div className="hidden lg:block"><QuickAddButton /></div>} />
-      <Suspense fallback={<PageSkeleton />}>
+      <PageSuspense>
         <Dashboard searchParams={props.searchParams} />
-      </Suspense>
+      </PageSuspense>
     </>
   );
 }
@@ -31,14 +30,14 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/">["searc
   const includeFixed = params.fixos === "1";
   const today = todayISO();
   const [stats, topics] = await Promise.all([dashboardStats({ period, includeFixed, today }), listTopics(today)]);
-  const activeTopics = topics.filter((topic) => topic.status === "active");
+  const activeTopics = topics.filter((topic) => topic.status === "active" && !topic.archivedAt);
   const periodLabel = PERIODS.find((p) => p.value === period)!.label.toLowerCase();
 
   return (
     <div className="flex flex-col gap-6">
       <DashboardFilters period={period} includeFixed={includeFixed} />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard highlight label={includeFixed ? "Total de horas" : "Tempo livre investido"} value={formatHours(stats.totalHours)} detail={`${periodLabel} · ${formatDate(stats.range.from)} a ${formatDate(stats.range.to)}`} />
         <StatCard label="Média diária" value={formatHours(stats.dailyAverage)} detail={`em ${stats.activeDays} dia(s) ativo(s)`} />
         <StatCard label="Maior foco" value={stats.topCategory?.name ?? "—"} detail={stats.topCategory ? `${formatHours(stats.topCategory.hours)} · ${formatPercent(stats.topCategory.percent)}` : "sem registros"} />
@@ -83,7 +82,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/">["searc
           </Link>
         </div>
         {activeTopics.length ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="stagger grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {activeTopics.slice(0, 6).map((topic) => (
               <TopicCard key={topic.id} topic={topic} today={today} compact />
             ))}

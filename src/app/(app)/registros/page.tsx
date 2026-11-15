@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { Suspense } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { EntryFilters } from "@/components/entries/entry-filters";
 import { EntryList } from "@/components/entries/entry-list";
 import { QuickAddButton } from "@/components/entries/quick-add";
-import { PageSkeleton } from "@/components/skeleton";
+import { PageSuspense } from "@/components/page-suspense";
 import { EmptyState } from "@/components/ui";
 import { isPeriod, periodRange, todayISO } from "@/lib/dates";
 import { formatHours } from "@/lib/format";
@@ -18,9 +17,9 @@ export default function EntriesPage(props: PageProps<"/registros">) {
   return (
     <>
       <PageHeader title="Registros" subtitle="Tudo o que você lançou, dia a dia" action={<div className="hidden lg:block"><QuickAddButton /></div>} />
-      <Suspense fallback={<PageSkeleton />}>
+      <PageSuspense>
         <Entries searchParams={props.searchParams} />
-      </Suspense>
+      </PageSuspense>
     </>
   );
 }

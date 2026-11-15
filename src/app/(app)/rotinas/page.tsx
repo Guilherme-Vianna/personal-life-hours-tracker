@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { Suspense } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { StatCard } from "@/components/dashboard/charts";
 import { RoutineFormButton } from "@/components/routines/routine-form";
 import { RoutineList } from "@/components/routines/routine-list";
-import { PageSkeleton } from "@/components/skeleton";
+import { PageSuspense } from "@/components/page-suspense";
 import { Card, CardTitle, EmptyState } from "@/components/ui";
 import { todayISO } from "@/lib/dates";
 import { formatHours } from "@/lib/format";
@@ -18,9 +17,9 @@ export const metadata: Metadata = { title: "Rotinas" };
 
 export default function RoutinesPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <PageSuspense>
       <Routines />
-    </Suspense>
+    </PageSuspense>
   );
 }
 
@@ -28,7 +27,7 @@ async function Routines() {
   await connection();
   const today = todayISO();
   const [routines, categories, topics] = await Promise.all([listRoutines(), listCategories(), listTopics(today)]);
-  const topicOptions = topics.filter((topic) => topic.status !== "completed").map((topic) => ({ id: topic.id, name: topic.name, categoryId: topic.categoryId }));
+  const topicOptions = topics.filter((topic) => topic.status !== "completed" && !topic.archivedAt).map((topic) => ({ id: topic.id, name: topic.name, categoryId: topic.categoryId }));
   const active = routines.filter((routine) => routineStatus(routine, today) === "running");
   const accumulated = routines.reduce((total, routine) => total + routineDates(routine, routine.startDate, today).length * routine.hours, 0);
   const perWeek = active.reduce((total, routine) => total + weeklyHours(routine), 0);
@@ -44,7 +43,7 @@ async function Routines() {
   return (
     <>
       <PageHeader title="Rotinas" subtitle="O que se repete toda semana entra sozinho nos painéis (CLT, treino, estudos fixos…)" action={newButton} />
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="stagger mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard highlight label="Horas por semana" value={formatHours(perWeek)} detail="carga fixa semanal" />
         <StatCard label="Estimativa mensal" value={formatHours(perWeek * 4.33)} detail="média de ~4,33 semanas" />
         <StatCard label="Compromissos fixos" value={formatHours(fixedPerWeek)} detail="por semana (ex.: CLT)" />

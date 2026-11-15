@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { Suspense } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { SeriesChart, WeekdayChart } from "@/components/dashboard/charts";
 import { FocusTable, Heatmap, InsightList, KpiCard, TopActivities, WeeklyTrend } from "@/components/insights/insights-charts";
 import { InsightsFilters } from "@/components/insights/insights-filters";
-import { PageSkeleton } from "@/components/skeleton";
+import { PageSuspense } from "@/components/page-suspense";
 import { Card, CardTitle, EmptyState } from "@/components/ui";
 import { formatDate, todayISO } from "@/lib/dates";
 import { formatHours, formatPercent } from "@/lib/format";
@@ -18,9 +17,9 @@ export default function InsightsPage(props: PageProps<"/analises">) {
   return (
     <>
       <PageHeader title="Análises" subtitle="Onde está o seu foco, como ele está mudando e o que os números dizem" />
-      <Suspense fallback={<PageSkeleton />}>
+      <PageSuspense>
         <Insights searchParams={props.searchParams} />
-      </Suspense>
+      </PageSuspense>
     </>
   );
 }
@@ -41,7 +40,7 @@ async function Insights({ searchParams }: { searchParams: PageProps<"/analises">
     <div className="flex flex-col gap-6">
       <InsightsFilters window={window} includeFixed={includeFixed} />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard highlight label={includeFixed ? "Total de horas" : "Tempo livre investido"} value={formatHours(kpis.total.value)} detail={rangeLabel} delta={kpis.total.change} />
         <KpiCard label="Média por dia" value={formatHours(kpis.perDay.value)} detail={`considerando todos os ${windowDays} dias`} delta={kpis.perDay.change} />
         <KpiCard label="Consistência" value={formatPercent(kpis.consistency.value)} detail={`${kpis.consistency.days} de ${windowDays} dias com registro`} delta={kpis.consistency.change} />

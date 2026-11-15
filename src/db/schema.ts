@@ -36,6 +36,8 @@ export const studyTopics = pgTable("study_topics", {
   deadline: date("deadline", { mode: "string" }),
   status: text("status", { enum: ["active", "paused", "completed"] }).notNull().default("active"),
   color: text("color").notNull().default("#16a34a"),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  archiveReason: text("archive_reason"),
   ...timestamps,
 });
 

@@ -28,12 +28,19 @@ Personal time tracker (free time + study topics with hour targets), ported from 
 - Entries and routines have a nullable `studyType` (`theory` | `practice`). Forms ask for it when a study topic is set or
   the category belongs to a topic; the API defaults it to `theory` when `studyTopicId` is set and it is missing.
 - Study progress math is pure in `src/lib/progress.ts` (pace window: last 28 days, min 7).
+- Topics can be archived with a reason (`archivedAt` + `archiveReason`, `POST/DELETE /api/topics/[id]/archive`), separate from
+  `status`. Archived topics keep all their hours and still count everywhere, but are hidden from topic pickers, the dashboard and
+  "em andamento"; archiving can also end linked routines today (past hours stay).
 - Routines are never materialized as entries: `listRoutineEntries` (`src/lib/services/routines.ts`) expands them on read
   between `startDate` and `endDate ?? today` (capped at today) and `listEntries`/topics merge them in. Virtual rows have
   `routineId` set and an id `rotina:<routineId>:<date>`; they are read-only in the UI.
 - `/analises` math is pure in `src/lib/insights.ts` (window vs previous window, 14-day focus, weekly trend, heatmap).
 - No authentication: no password, PIN or proxy by design (single-user app); don't reintroduce unless asked.
 - Theme: school green palette (`brand-*`, `board`, `chalk`, `pencil` tokens in `src/app/globals.css`), fonts Nunito + Caveat.
+- Motion: pages wrap their data in `PageSuspense` (React `<ViewTransition>`: skeleton slides out, content rises in on load and
+  navigation); topic names morph between card and detail (`topic-name-<id>`). CSS helpers in `globals.css`: `stagger` (children
+  rise in sequence), `lift` (hover lift, fine pointers only), `skeleton`, `bar-grow`/`bar-rise`; `CountUp` for animated numbers.
+  Everything respects `prefers-reduced-motion`.
 - Mobile first-class (below `lg` the sidebar becomes `MobileNav`: Painel, Registros, Registrar, Estudos, "Mais" sheet). Layout rules:
   - Always give grids explicit columns (`grid-cols-1 md:grid-cols-2`, `minmax(0,…)`): an implicit `auto` column grows with its
     content and pushes the whole page wider than the screen. Chart columns in `flex` need `min-w-0`.

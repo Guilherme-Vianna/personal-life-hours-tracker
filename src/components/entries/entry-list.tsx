@@ -19,7 +19,7 @@ export function EntryList({ entries, today }: { entries: EntryRow[]; today: stri
   for (const entry of entries) days.set(entry.date, [...(days.get(entry.date) ?? []), entry]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="stagger flex flex-col gap-5">
       {[...days].map(([day, rows]) => (
         <section key={day}>
           <header className="mb-2 flex items-baseline justify-between px-1">

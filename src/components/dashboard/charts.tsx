@@ -10,7 +10,7 @@ export function barTooltipPosition(index: number, length: number) {
 
 export function StatCard({ label, value, detail, highlight = false }: { label: string; value: string; detail: string; highlight?: boolean }) {
   return (
-    <div className={`min-w-0 rounded-2xl border p-4 sm:p-5 ${highlight ? "chalkboard border-transparent text-chalk" : "border-border bg-surface"}`}>
+    <div className={`lift min-w-0 rounded-2xl border p-4 shadow-card sm:p-5 ${highlight ? "chalkboard border-transparent text-chalk" : "border-border bg-surface"}`}>
       <p className={`text-[11px] font-bold tracking-wider uppercase ${highlight ? "text-chalk/70" : "text-muted"}`}>{label}</p>
       <p
         className={`mt-1.5 line-clamp-2 leading-tight font-extrabold break-words ${

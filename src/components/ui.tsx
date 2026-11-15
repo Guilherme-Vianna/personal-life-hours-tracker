@@ -21,7 +21,7 @@ export function Button({
     <button
       type="button"
       {...props}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-xl leading-tight font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-[0.98] disabled:cursor-not-allowed ${
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl leading-tight font-semibold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-[0.98] disabled:cursor-not-allowed ${
         size === "sm" ? "min-h-10 px-3 py-1.5 text-sm sm:min-h-0" : "min-h-11 px-4 py-2.5 text-sm sm:min-h-0"
       } ${buttonStyles[variant]} ${className}`}
     />
@@ -29,13 +29,16 @@ export function Button({
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-5 shadow-[0_1px_2px_rgb(19_38_27/0.04)] ${className}`}>{children}</section>;
+  return <section className={`min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-5 shadow-card ${className}`}>{children}</section>;
 }
 
 export function CardTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
-      <h2 className="text-base font-bold text-ink">{children}</h2>
+      <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+        <span className="h-4 w-1 rounded-full bg-pencil" aria-hidden />
+        {children}
+      </h2>
       {action}
     </div>
   );
@@ -80,7 +83,7 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(100, value));
   return (
     <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(clamped)} className={`${height} w-full overflow-hidden rounded-full bg-brand-50 ring-1 ring-inset ring-brand-100`}>
-      <div className={`${height} bar-grow rounded-full`} style={{ width: `${clamped}%`, background: color }} />
+      <div className={`${height} bar-grow rounded-full transition-[width] duration-700 ease-out`} style={{ width: `${clamped}%`, background: color }} />
     </div>
   );
 }
@@ -186,8 +189,8 @@ export function ConfirmButton({
 
 export function EmptyState({ title, description, action, icon = "📒" }: { title: string; description: string; action?: ReactNode; icon?: string }) {
   return (
-    <div className="notebook flex flex-col items-center rounded-2xl border border-dashed border-brand-200 bg-surface px-6 py-12 text-center">
-      <span className="text-4xl" aria-hidden>
+    <div className="notebook flex animate-[rise_0.45s_var(--ease-out-soft)_both] flex-col items-center rounded-2xl border border-dashed border-brand-200 bg-surface px-6 py-12 text-center">
+      <span className="animate-[float_3s_ease-in-out_infinite] text-4xl" aria-hidden>
         {icon}
       </span>
       <h3 className="mt-3 font-hand text-2xl font-bold text-brand-800">{title}</h3>
@@ -208,7 +211,7 @@ export function ColorPicker({ value, onChange, colors }: { value: string; onChan
           aria-checked={value === color}
           aria-label={color}
           onClick={() => onChange(color)}
-          className={`size-10 rounded-full ring-offset-2 sm:size-8 transition ${value === color ? "ring-2 ring-ink" : "hover:scale-110"}`}
+          className={`size-10 rounded-full ring-offset-2 transition duration-200 ease-(--ease-spring) sm:size-8 ${value === color ? "scale-110 ring-2 ring-ink" : "hover:scale-110"}`}
           style={{ background: color }}
         />
       ))}

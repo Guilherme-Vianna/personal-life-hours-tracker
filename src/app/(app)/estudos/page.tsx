@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { Suspense } from "react";
 import { PageHeader } from "@/components/app-shell";
-import { PageSkeleton } from "@/components/skeleton";
+import { PageSuspense } from "@/components/page-suspense";
 import { TopicCard } from "@/components/study/topic-card";
 import { TopicFormButton } from "@/components/study/topic-form";
 import { EmptyState, ProgressBar } from "@/components/ui";
@@ -15,9 +14,9 @@ export const metadata: Metadata = { title: "Estudos" };
 
 export default function StudyPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <PageSuspense>
       <Study />
-    </Suspense>
+    </PageSuspense>
   );
 }
 
@@ -32,8 +31,10 @@ async function Study() {
     </TopicFormButton>
   );
 
-  const active = topics.filter((topic) => topic.status === "active");
-  const others = topics.filter((topic) => topic.status !== "active");
+  const current = topics.filter((topic) => !topic.archivedAt);
+  const archived = topics.filter((topic) => topic.archivedAt);
+  const active = current.filter((topic) => topic.status === "active");
+  const others = current.filter((topic) => topic.status !== "active");
   const weekHours = active.reduce((total, topic) => total + topic.progress.weekHours, 0);
   const weekGoal = active.reduce((total, topic) => total + (topic.weeklyGoalHours ?? 0), 0);
 
@@ -65,7 +66,7 @@ async function Study() {
           )}
 
           {active.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="stagger grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {active.map((topic) => (
                 <TopicCard key={topic.id} topic={topic} today={today} />
               ))}
@@ -75,12 +76,30 @@ async function Study() {
           {others.length > 0 && (
             <section>
               <h2 className="mb-3 text-lg font-bold">Pausados e concluídos</h2>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="stagger grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {others.map((topic) => (
                   <TopicCard key={topic.id} topic={topic} today={today} />
                 ))}
               </div>
             </section>
+          )}
+
+          {archived.length > 0 && (
+            <details className="group" open={current.length === 0}>
+              <summary className="mb-3 flex cursor-pointer list-none items-center gap-2 text-lg font-bold select-none [&::-webkit-details-marker]:hidden">
+                <svg viewBox="0 0 20 20" fill="currentColor" className="size-5 text-muted transition-transform group-open:rotate-90" aria-hidden>
+                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clipRule="evenodd" />
+                </svg>
+                Arquivados
+                <span className="rounded-full bg-stone-200 px-2 py-0.5 text-xs font-bold text-stone-700">{archived.length}</span>
+                <span className="text-sm font-normal text-muted">· {formatHours(archived.reduce((total, topic) => total + topic.progress.totalHours, 0))} estudadas</span>
+              </summary>
+              <div className="stagger grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {archived.map((topic) => (
+                  <TopicCard key={topic.id} topic={topic} today={today} />
+                ))}
+              </div>
+            </details>
           )}
         </div>
       )}
