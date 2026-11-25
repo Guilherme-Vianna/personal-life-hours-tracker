@@ -34,6 +34,12 @@ Personal time tracker (free time + study topics with hour targets), ported from 
 - Routines are never materialized as entries: `listRoutineEntries` (`src/lib/services/routines.ts`) expands them on read
   between `startDate` and `endDate ?? today` (capped at today) and `listEntries`/topics merge them in. Virtual rows have
   `routineId` set and an id `rotina:<routineId>:<date>`; they are read-only in the UI.
+- Integrations (e.g. the MOS study app) push hours through `POST /api/integrations/<source>/sync` and read
+  `GET /api/integrations/<source>` (`src/lib/services/integrations.ts`), authenticated with `Authorization: Bearer
+  $INTEGRATION_TOKEN` (disabled when unset). Topics and entries carry `externalSource` + `externalId` (unique pair), so a sync
+  is idempotent; an unlinked topic with the same name is adopted. `mode: "replace"` deletes the source's entries missing from
+  the payload and archives its missing topics with `SYNC_ARCHIVE_REASON` (restored if they come back). Edits made here to
+  synced entries are overwritten by the next sync.
 - `/analises` math is pure in `src/lib/insights.ts` (window vs previous window, 14-day focus, weekly trend, heatmap).
 - No authentication: no password, PIN or proxy by design (single-user app); don't reintroduce unless asked.
 - Theme: school green palette (`brand-*`, `board`, `chalk`, `pencil` tokens in `src/app/globals.css`), fonts Nunito + Caveat.

@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, date, index, integer, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, index, integer, numeric, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 const hours = (name: string) => numeric(name, { precision: 6, scale: 2, mode: "number" });
 
@@ -7,6 +7,11 @@ export const STUDY_TYPES = ["theory", "practice"] as const;
 export type StudyType = (typeof STUDY_TYPES)[number];
 
 const studyType = () => text("study_type", { enum: STUDY_TYPES });
+
+const externalRef = {
+  externalSource: text("external_source"),
+  externalId: text("external_id"),
+};
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -38,8 +43,9 @@ export const studyTopics = pgTable("study_topics", {
   color: text("color").notNull().default("#16a34a"),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   archiveReason: text("archive_reason"),
+  ...externalRef,
   ...timestamps,
-});
+}, (table) => [uniqueIndex("study_topics_external_idx").on(table.externalSource, table.externalId)]);
 
 export const routines = pgTable("routines", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -71,9 +77,11 @@ export const entries = pgTable(
     notes: text("notes"),
     studyTopicId: uuid("study_topic_id").references(() => studyTopics.id, { onDelete: "set null" }),
     studyType: studyType(),
+    ...externalRef,
     ...timestamps,
   },
   (table) => [
+    uniqueIndex("entries_external_idx").on(table.externalSource, table.externalId),
     index("entries_date_idx").on(table.date),
     index("entries_category_idx").on(table.categoryId),
     index("entries_topic_idx").on(table.studyTopicId),

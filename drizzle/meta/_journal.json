@@ -29,6 +29,13 @@
       "when": 1794754410245,
       "tag": "0003_topic_archive",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795649359553,
+      "tag": "0004_mos_integration",
+      "breakpoints": true
     }
   ]
 }
