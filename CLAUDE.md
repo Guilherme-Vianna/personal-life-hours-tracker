@@ -59,5 +59,7 @@ Personal time tracker (free time + study topics with hour targets), ported from 
 ## Commands
 
 - `pnpm dev` / `pnpm build` / `pnpm lint` / `pnpm typecheck`
+- Vercel runs `vercel-build` (pinned in `vercel.json`) (`drizzle-kit migrate && next build`): pending migrations are applied to the production DB
+  before the new code goes live; a failed migration fails the deploy.
 - `pnpm db:generate` (after schema changes) / `pnpm db:migrate` / `pnpm db:studio`
 - `pnpm db:import <file.xlsx> [--include-future]` imports the spreadsheet idempotently
